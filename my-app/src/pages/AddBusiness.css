@@ -1,0 +1,128 @@
+/* ====== Add Mosque Page Styling ====== */
+
+.add-mosque-container {
+  max-width: 700px;
+  margin: 50px auto;
+  padding: 30px 40px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.add-mosque-container h2 {
+  text-align: center;
+  color: #1c3d5a;
+  margin-bottom: 25px;
+  font-size: 26px;
+  letter-spacing: 0.5px;
+}
+
+/* ====== Form ====== */
+
+.add-mosque-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.add-mosque-form label {
+  font-weight: 600;
+  color: #333;
+  margin-top: 5px;
+}
+
+.add-mosque-form input,
+.add-mosque-form select {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.25s ease;
+}
+
+.add-mosque-form input:focus,
+.add-mosque-form select:focus {
+  border-color: #1c3d5a;
+  box-shadow: 0 0 0 3px rgba(28, 61, 90, 0.15);
+  outline: none;
+}
+
+/* ====== Button ====== */
+
+.add-mosque-form button {
+  background-color: #1c3d5a;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 12px 0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.add-mosque-form button:hover {
+  background-color: #23527c;
+  transform: scale(1.02);
+}
+
+/* ====== Message ====== */
+
+.form-message {
+  text-align: center;
+  font-size: 15px;
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.form-message:has(> span) {
+  background-color: #f0f0f0;
+}
+
+.form-message:contains("✅") {
+  background-color: #e6f9ec;
+  color: #256c36;
+  border: 1px solid #a6d8b8;
+}
+
+.form-message:contains("Failed") {
+  background-color: #fdecea;
+  color: #a94442;
+  border: 1px solid #f5c6cb;
+}
+
+/* ====== Map Section ====== */
+
+.leaflet-container {
+  border-radius: 10px;
+  border: 2px solid #e0e0e0;
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+}
+
+.leaflet-container:hover {
+  border-color: #1c3d5a;
+}
+
+.add-mosque-form p {
+  font-size: 14px;
+  color: #666;
+  margin-top: -5px;
+  text-align: right;
+}
+
+/* ====== Responsive ====== */
+
+@media (max-width: 600px) {
+  .add-mosque-container {
+    padding: 20px;
+    margin: 20px;
+  }
+
+  .add-mosque-container h2 {
+    font-size: 22px;
+  }
+}

@@ -1,0 +1,134 @@
+.customer-home {
+  font-family: "Poppins", sans-serif;
+}
+
+/* ===== Hero Section ===== */
+.hero {
+  position: relative;
+  background: url("/images/procurement-banner.jpg") center/cover no-repeat;
+  height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+}
+
+.hero-overlay {
+  background: rgba(0, 0, 0, 0.55);
+  padding: 40px;
+  border-radius: 12px;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.hero-btn {
+  background-color: #d4af37;
+  color: #000;
+  padding: 12px 25px;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.hero-btn:hover {
+  background-color: #b38e2e;
+  color: #fff;
+}
+
+/* ===== Categories Section ===== */
+.categories-section {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.categories-section h2 {
+  font-size: 2rem;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.category-card {
+  background: #f6f6f6;
+  border-radius: 10px;
+  padding: 25px;
+  color: #000;
+  text-decoration: none;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  transition: 0.3s;
+}
+
+.category-card:hover {
+  transform: translateY(-5px);
+  background-color: #d4af37;
+  color: white;
+}
+
+/* ===== Businesses Section ===== */
+.latest-businesses {
+  padding: 60px 20px;
+  background-color: #fafafa;
+  text-align: center;
+}
+
+.latest-businesses h2 {
+  font-size: 2rem;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.business-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px;
+}
+
+.business-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  transition: 0.3s;
+}
+
+.business-card:hover {
+  transform: scale(1.05);
+}
+
+.business-logo {
+  width: 100%;
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 10px;
+  border-radius: 6px;
+}
+
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .hero p {
+    font-size: 1rem;
+  }
+
+  .hero-btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}

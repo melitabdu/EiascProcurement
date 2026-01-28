@@ -1,0 +1,53 @@
+.request-container {
+  max-width: 800px;
+  margin: 30px auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #ccc;
+}
+
+.request-form label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.request-form input,
+.request-form textarea,
+.request-form select {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+}
+
+.request-form button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.request-form button:hover {
+  background-color: #084298;
+}
+
+.request-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.request-table th,
+.request-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.request-table th {
+  background: #f4f4f4;
+}

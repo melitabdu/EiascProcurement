@@ -1,0 +1,186 @@
+/* ===============================
+   PAGE LAYOUT
+================================ */
+
+.quotation-page {
+  padding: 20px;
+  background: #f8fafc;
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  color: #111827;
+}
+
+.loading {
+  text-align: center;
+  font-size: 16px;
+  padding: 30px;
+}
+
+.error {
+  text-align: center;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* ===============================
+   PAGE HEADER
+================================ */
+
+.quotation-page h2 {
+  text-align: center;
+  margin-bottom: 8px;
+  color: #0f172a;
+}
+
+.quotation-page p {
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 18px;
+  color: #334155;
+}
+
+/* ===============================
+   TABLE WRAPPER
+================================ */
+
+.table-wrapper {
+  overflow-x: auto;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* ===============================
+   SUMMARY TABLE
+================================ */
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background: #ffffff;
+}
+
+.summary-table thead {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+.summary-table th,
+.summary-table td {
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.summary-table th {
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* Zebra rows */
+.summary-table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+/* Hover effect */
+.summary-table tbody tr:hover {
+  background: #eef2ff;
+}
+
+/* ===============================
+   PRICE CELLS
+================================ */
+
+.summary-table td b {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+/* ===============================
+   WINNER HIGHLIGHT
+================================ */
+
+.winner-cell {
+  background: #dcfce7 !important;
+  color: #166534;
+  font-weight: bold;
+  border: 2px solid #22c55e;
+}
+
+/* Winner column text */
+.summary-table td:last-child {
+  font-weight: 600;
+  color: #065f46;
+}
+
+/* ===============================
+   PRINT BUTTON
+================================ */
+
+.print-button {
+  display: block;
+  margin: 25px auto 0;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.print-button:hover {
+  background: #1d4ed8;
+}
+
+/* ===============================
+   PRINT STYLES
+   (ONLY TABLE + HEADINGS)
+================================ */
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .quotation-page,
+  .quotation-page * {
+    visibility: visible;
+  }
+
+  .quotation-page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .print-button {
+    display: none !important;
+  }
+
+  .quotation-page h2 {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+
+  .quotation-page p {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .summary-table {
+    font-size: 12px;
+  }
+
+  .summary-table th,
+  .summary-table td {
+    padding: 6px 8px;
+  }
+}

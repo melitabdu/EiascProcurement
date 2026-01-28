@@ -1,0 +1,41 @@
+.admin-login-container {
+  max-width: 400px;
+  margin: 6rem auto;
+  padding: 2rem;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  color:white'
+}
+
+.admin-login-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-login-container label {
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.admin-login-container input {
+  padding: 8px;
+  margin-top: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.admin-login-container button {
+  margin-top: 1.5rem;
+  padding: 10px;
+  background-color: #1a5d1a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.error-msg {
+  color: red;
+  margin-top: 10px;
+}

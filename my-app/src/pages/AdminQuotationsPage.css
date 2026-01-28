@@ -1,0 +1,91 @@
+.quotation-page {
+  padding: 24px;
+  background: #f4f6f9;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-header h2 {
+  font-size: 22px;
+  color: #1f2937;
+}
+
+.summary-btn {
+  background: #2563eb;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.summary-btn:hover {
+  background: #1d4ed8;
+}
+
+.quotation-card {
+  background: #ffffff;
+  padding: 18px;
+  border-radius: 10px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.quotation-card h3 {
+  margin-bottom: 10px;
+  color: #111827;
+}
+
+.quotation-card p {
+  margin: 4px 0;
+  color: #374151;
+}
+
+.quotation-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+}
+
+.quotation-table th,
+.quotation-table td {
+  border: 1px solid #e5e7eb;
+  padding: 10px;
+  text-align: center;
+}
+
+.quotation-table th {
+  background: #f9fafb;
+  font-weight: 700;
+  color: #111827;
+}
+
+.quotation-table tbody tr:hover {
+  background: #f3f4f6;
+}
+
+.loading {
+  padding: 40px;
+  font-size: 18px;
+}
+
+.error {
+  color: #dc2626;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .quotation-table {
+    font-size: 12px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
