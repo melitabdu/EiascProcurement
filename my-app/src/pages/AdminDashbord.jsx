@@ -7,8 +7,8 @@ const AdminDashboard = () => {
 
   // Example stats (replace with backend data if needed)
   const stats = [
-    { title: 'Total Businesses', value: 42 },
-    { title: 'Active Ads', value: 5 },
+    { title: 'Total Businesses', value: 3 },
+    { title: 'Active Ads', value: 2 },
   ];
 
   const handleSearchChange = (e) => {

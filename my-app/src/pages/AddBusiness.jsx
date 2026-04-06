@@ -50,6 +50,11 @@ const AddBusiness = () => {
     latitude: "",
     longitude: "",
     password: "",
+
+    // ✅ NEW FIELDS
+    contactPersonName: "",
+    contactPersonPhone: "",
+    contactPersonPosition: "",
   });
 
   const [logo, setLogo] = useState(null);
@@ -84,6 +89,7 @@ const AddBusiness = () => {
 
     try {
       const formData = new FormData();
+
       formData.append("name", form.name);
       form.categories.forEach((c) => formData.append("categories[]", c));
       formData.append("description", form.description);
@@ -95,6 +101,11 @@ const AddBusiness = () => {
       formData.append("latitude", form.latitude);
       formData.append("longitude", form.longitude);
 
+      // ✅ CONTACT PERSON DATA
+      formData.append("contactPersonName", form.contactPersonName);
+      formData.append("contactPersonPhone", form.contactPersonPhone);
+      formData.append("contactPersonPosition", form.contactPersonPosition);
+
       if (logo) formData.append("logo", logo);
       documents.forEach((doc) => formData.append("documents", doc));
 
@@ -104,13 +115,14 @@ const AddBusiness = () => {
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${adminToken}`, // ✅ FIXED
+            Authorization: `Bearer ${adminToken}`,
           },
         }
       );
 
       setMessage(`✅ Business "${res.data.business.name}" added successfully`);
 
+      // Reset form
       setForm({
         name: "",
         categories: [],
@@ -122,6 +134,9 @@ const AddBusiness = () => {
         latitude: "",
         longitude: "",
         password: "",
+        contactPersonName: "",
+        contactPersonPhone: "",
+        contactPersonPosition: "",
       });
 
       setLogo(null);
@@ -157,12 +172,16 @@ const AddBusiness = () => {
         </div>
 
         <label>Description</label>
-        <textarea name="description" value={form.description} onChange={handleChange} />
+        <textarea
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+        />
 
         <label>Address</label>
         <input name="address" value={form.address} onChange={handleChange} />
 
-        <label>Phone</label>
+        <label>Business Phone</label>
         <input name="phone" value={form.phone} onChange={handleChange} />
 
         <label>Email</label>
@@ -172,7 +191,39 @@ const AddBusiness = () => {
         <input name="website" value={form.website} onChange={handleChange} />
 
         <label>Business Login Password</label>
-        <input type="text" name="password" value={form.password} onChange={handleChange} required />
+        <input
+          type="text"
+          name="password"
+          value={form.password}
+          onChange={handleChange}
+          required
+        />
+
+        {/* ✅ CONTACT PERSON SECTION */}
+        <h3>Contact Person</h3>
+
+        <label>Name</label>
+        <input
+          name="contactPersonName"
+          value={form.contactPersonName}
+          onChange={handleChange}
+          required
+        />
+
+        <label>Phone</label>
+        <input
+          name="contactPersonPhone"
+          value={form.contactPersonPhone}
+          onChange={handleChange}
+          required
+        />
+
+        <label>Position</label>
+        <input
+          name="contactPersonPosition"
+          value={form.contactPersonPosition}
+          onChange={handleChange}
+        />
 
         <label>Logo</label>
         <input type="file" accept="image/*" onChange={(e) => setLogo(e.target.files[0])} />
@@ -183,11 +234,15 @@ const AddBusiness = () => {
         <label>Map Location</label>
         <MapContainer center={[9.03, 38.74]} zoom={6} style={{ height: 300 }}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          {form.latitude && <Marker position={[form.latitude, form.longitude]} />}
+          {form.latitude && (
+            <Marker position={[form.latitude, form.longitude]} />
+          )}
           <LocationMarker setLatLng={setLatLng} />
         </MapContainer>
 
-        <p>Lat: {form.latitude || "-"} | Lng: {form.longitude || "-"}</p>
+        <p>
+          Lat: {form.latitude || "-"} | Lng: {form.longitude || "-"}
+        </p>
 
         <button type="submit" disabled={loading}>
           {loading ? "Saving..." : "Add Business"}

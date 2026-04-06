@@ -1,381 +1,300 @@
 import asyncHandler from "express-async-handler";
 import Invitation from "../models/invitationModel.js";
+import Procurement from "../models/procurementModel.js";
+import { logAudit } from "../utils/auditLogger.js";
 import ProcurementRequest from "../models/procurementModel.js";
-import Business from "../models/business.js";
+import { generateEvaluationReport } from "../utils/generateEvaluationReport.js";
 
 /* ======================================================
-   INVITE BUSINESSES (ADMIN)
+   INVITE BUSINESSES
 ====================================================== */
 export const inviteBusinesses = asyncHandler(async (req, res) => {
   const { procurementId, businessIds } = req.body;
 
-  if (!procurementId || !Array.isArray(businessIds) || businessIds.length === 0) {
-    res.status(400);
-    throw new Error("Procurement ID and business IDs are required");
-  }
+  const invitations = await Promise.all(
+    businessIds.map((businessId) =>
+      Invitation.create({
+        procurement: procurementId,
+        business: businessId,
+        sealed: true,
+        status: "invited",
+      })
+    )
+  );
 
-  const procurement = await ProcurementRequest.findById(procurementId);
-  if (!procurement) {
-    res.status(404);
-    throw new Error("Procurement not found");
-  }
-
-  const invited = [];
-
-  for (const businessId of businessIds) {
-    const business = await Business.findById(businessId);
-    if (!business) continue;
-
-    const exists = await Invitation.findOne({
-      procurement: procurementId,
-      business: businessId,
-    });
-    if (exists) continue;
-
-    const invitation = await Invitation.create({
-      procurement: procurementId,
-      business: businessId,
-      sealed: true,
-      status: "invited",
-    });
-
-    invited.push(invitation);
-
-    if (!procurement.invitedBusinesses.includes(businessId)) {
-      procurement.invitedBusinesses.push(businessId);
-    }
-  }
-
-  await procurement.save();
-
-  res.status(201).json({
-    message: `${invited.length} businesses invited successfully`,
-    invitations: invited,
+  await logAudit({
+    action: "BUSINESSES_INVITED",
+    entity: "Invitation",
+    entityId: procurementId,
+    performedBy: req.user._id,
+    role: "admin",
+    description: "Businesses invited",
+    newData: invitations,
+    req,
   });
-});
-
-/* ======================================================
-   GET INVITATIONS BY PROCUREMENT (ADMIN)
-====================================================== */
-export const getInvitationsByProcurement = asyncHandler(async (req, res) => {
-  const invitations = await Invitation.find({
-    procurement: req.params.id,
-  })
-    .populate("business", "name email phone logo")
-    .populate(
-      "procurement",
-      "title referenceNumber deadline category items"
-    );
 
   res.json(invitations);
 });
 
 /* ======================================================
-   GET INVITATIONS FOR BUSINESS DASHBOARD
+   GET INVITATIONS BY PROCUREMENT
+====================================================== */
+export const getInvitationsByProcurement = asyncHandler(async (req, res) => {
+  const invitations = await Invitation.find({
+    procurement: req.params.id,
+  }).populate("business");
+
+  res.json(invitations);
+});
+
+/* ======================================================
+   GET INVITATIONS BY BUSINESS
 ====================================================== */
 export const getInvitationsByBusiness = asyncHandler(async (req, res) => {
-  if (req.user.role !== "business") {
+  if (!req.user?.businessId) {
     res.status(403);
-    throw new Error("Access denied");
+    throw new Error("Business access not linked");
   }
 
   const invitations = await Invitation.find({
     business: req.user.businessId,
-  })
-    .populate({
-      path: "procurement",
-      select: "title description deadline referenceNumber items",
-    })
-    .lean();
+  }).populate("procurement");
 
-  const business = await Business.findById(req.user.businessId);
-
-  const result = invitations.map((inv) => ({
-    ...inv,
-    procurement: {
-      ...inv.procurement,
-      items: inv.procurement?.items || [],
-    },
-    business: {
-      businessId: business._id,
-      name: business.name,
-      logo: business.logo || null,
-      email: business.email,
-    },
-  }));
-
-  res.json(result);
+  res.json(invitations);
 });
-
 /* ======================================================
-   SUBMIT SEALED QUOTATION (BUSINESS)
+   SUBMIT QUOTATION
 ====================================================== */
 export const submitQuotation = asyncHandler(async (req, res) => {
-  const { items = [], priceValidityUntil, generalRemarks } = req.body;
+  const { items, priceValidityUntil, generalRemarks } = req.body;
 
-  if (req.user.role !== "business") {
+  if (!req.user?.businessId) {
     res.status(403);
-    throw new Error("Only businesses can submit quotations");
+    throw new Error("Business not authenticated");
   }
 
   const invitation = await Invitation.findById(req.params.id).populate(
     "procurement"
   );
 
-  if (!invitation) {
-    res.status(404);
-    throw new Error("Invitation not found");
-  }
-
-  if (invitation.business.toString() !== req.user.businessId.toString()) {
+  if (!invitation || invitation.sealed !== true) {
     res.status(403);
-    throw new Error("Unauthorized");
+    throw new Error("Invalid or closed invitation");
   }
 
-  if (invitation.status !== "invited") {
+  if (invitation.procurement?.bidOpened) {
     res.status(400);
-    throw new Error("Quotation already submitted or closed");
+    throw new Error("Bid already opened. Submission closed.");
   }
 
-  if (new Date() > new Date(invitation.procurement.deadline)) {
-    res.status(400);
-    throw new Error("Submission deadline has passed");
-  }
-
-  if (!priceValidityUntil) {
-    res.status(400);
-    throw new Error("Price validity date is required");
-  }
-
-  const procurementItems = invitation.procurement.items || [];
-
-  const quotationItems = procurementItems.map((pItem) => {
-    const quoted = items.find(
+  const quotationItems = invitation.procurement.items.map((pItem) => {
+    const quoted = items?.find(
       (i) => i.procurementItemId === pItem._id.toString()
     );
 
-    // ❌ Not quoted
-    if (!quoted || quoted.unitPrice == null) {
-      return {
-        procurementItemId: pItem._id,
-        itemName: pItem.itemName,
-        unit: pItem.unit,
-        quoted: false,
-        unitPrice: null,
-        quantity: pItem.quantity,
-        totalPrice: null,
-        deliveryTimeDays: null,
-        remarks: quoted?.remarks || "",
-      };
-    }
-
-    if (quoted.deliveryTimeDays == null) {
-      res.status(400);
-      throw new Error(
-        `Delivery time (days) is required for item: ${pItem.itemName}`
-      );
-    }
+    const unitPrice =
+      quoted && quoted.unitPrice !== undefined
+        ? Number(quoted.unitPrice)
+        : null;
 
     return {
       procurementItemId: pItem._id,
       itemName: pItem.itemName,
       unit: pItem.unit,
-      quoted: true,
-      unitPrice: Number(quoted.unitPrice),
-      quantity: pItem.quantity,
-      totalPrice: Number(quoted.unitPrice) * pItem.quantity,
-      deliveryTimeDays: Number(quoted.deliveryTimeDays),
-      remarks: quoted.remarks || "",
+      quantity: pItem.quantity || 0,
+      unitPrice,
+      totalPrice:
+        unitPrice !== null ? unitPrice * (pItem.quantity || 0) : null,
+      remarks: quoted?.remarks || "",
     };
   });
 
   invitation.quotation = {
     items: quotationItems,
-    priceValidityUntil: new Date(priceValidityUntil),
+    priceValidityUntil,
     remarks: generalRemarks || "",
     submittedAt: new Date(),
   };
 
   invitation.status = "submitted";
+
+  await logAudit({
+    action: "QUOTATION_SUBMITTED",
+    entity: "Invitation",
+    entityId: invitation._id,
+    performedBy: req.user.businessId, // ✅ fixed here
+    role: "business",
+    description: "Quotation submitted",
+    newData: invitation.quotation,
+    req,
+  });
+
   await invitation.save();
 
-  res.json({ message: "Quotation submitted successfully" });
+  res.json({ message: "Quotation submitted" });
 });
-
 /* ======================================================
-   WITHDRAW INVITATION (BUSINESS)
-====================================================== */
-export const withdrawInvitation = asyncHandler(async (req, res) => {
-  if (req.user.role !== "business") {
-    res.status(403);
-    throw new Error("Only businesses can withdraw invitations");
-  }
-
-  const invitation = await Invitation.findById(req.params.id);
-
-  if (!invitation) {
-    res.status(404);
-    throw new Error("Invitation not found");
-  }
-
-  if (invitation.business.toString() !== req.user.businessId.toString()) {
-    res.status(403);
-    throw new Error("Unauthorized");
-  }
-
-  if (invitation.status !== "invited") {
-    res.status(400);
-    throw new Error("Cannot withdraw after quotation submission");
-  }
-
-  await ProcurementRequest.findByIdAndUpdate(invitation.procurement, {
-    $pull: { invitedBusinesses: invitation.business },
-  });
-
-  await invitation.deleteOne();
-
-  res.json({ message: "Invitation withdrawn successfully" });
-});
-
-/* ======================================================
-   GET ALL SUBMITTED QUOTATIONS (ADMIN) ✅ FINAL FIX
-====================================================== */
-export const getAllSubmittedQuotations = asyncHandler(async (req, res) => {
-  const invitations = await Invitation.find({ status: "submitted" })
-    .populate("business", "name email")
-    .populate("procurement", "title referenceNumber deadline items")
-    .lean();
-
-  const result = invitations.map((inv) => {
-    const procurementItems = inv.procurement?.items || [];
-
-    const fixedItems =
-      inv.quotation?.items?.map((qItem) => {
-        const pItem = procurementItems.find(
-          (p) => p._id.toString() === qItem.procurementItemId.toString()
-        );
-
-        return {
-          ...qItem,
-          itemName: qItem.itemName || pItem?.itemName || "—",
-          unit: qItem.unit || pItem?.unit || "—",
-        };
-      }) || [];
-
-    return {
-      ...inv,
-      quotation: {
-        ...inv.quotation,
-        items: fixedItems,
-      },
-    };
-  });
-
-  res.json(result);
-});
-
-/* ======================================================
-   OPEN SEALED BIDS (ADMIN)
+   OPEN INVITATIONS (ADMIN)
 ====================================================== */
 export const openInvitations = asyncHandler(async (req, res) => {
-  const invitations = await Invitation.find({
-    procurement: req.params.procurementId,
-    sealed: true,
-  });
+  const procurement = await Procurement.findById(req.params.procurementId);
 
-  for (const inv of invitations) {
-    inv.sealed = false;
-    inv.status = "opened";
-    await inv.save();
+  if (!procurement.bidOpened) {
+    res.status(400);
+    throw new Error("Procurement not opened yet");
   }
 
-  res.json({
-    message: "Sealed bids opened successfully",
-    openedCount: invitations.length,
+  await Invitation.updateMany(
+    { procurement: procurement._id },
+    { sealed: false, status: "opened" }
+  );
+
+  await logAudit({
+    action: "INVITATIONS_OPENED",
+    entity: "Procurement",
+    entityId: procurement._id,
+    performedBy: req.user._id,
+    role: "admin",
+    description: "All invitations opened",
+    req,
   });
+
+  res.json({ message: "Invitations opened" });
 });
 
 /* ======================================================
-   UPDATE INVITATION STATUS (ADMIN)
+   UPDATE INVITATION STATUS
 ====================================================== */
 export const updateInvitationStatus = asyncHandler(async (req, res) => {
-  const { status } = req.body;
-
-  const allowedStatuses = ["shortlisted", "awarded", "rejected"];
-  if (!allowedStatuses.includes(status)) {
-    res.status(400);
-    throw new Error("Invalid status update");
-  }
-
   const invitation = await Invitation.findById(req.params.id);
-  if (!invitation) {
-    res.status(404);
-    throw new Error("Invitation not found");
-  }
+  if (!invitation) throw new Error("Invitation not found");
 
-  invitation.status = status;
+  invitation.status = req.body.status;
   await invitation.save();
 
-  res.json({ message: `Invitation ${status}` });
-});
-// controllers/invitationController.js
+  await logAudit({
+    action: "INVITATION_STATUS_UPDATED",
+    entity: "Invitation",
+    entityId: invitation._id,
+    performedBy: req.user._id,
+    role: "admin",
+    description: `Status updated to ${req.body.status}`,
+    req,
+  });
 
+  res.json(invitation);
+});
+
+/* ======================================================
+   GET ALL SUBMITTED QUOTATIONS
+====================================================== */
+export const getAllSubmittedQuotations = asyncHandler(async (req, res) => {
+  const quotations = await Invitation.find({ status: "submitted" })
+    .populate("business")
+    .populate("procurement");
+
+  res.json(quotations);
+});
+
+/* ======================================================
+   WITHDRAW INVITATION
+====================================================== */
+export const withdrawInvitation = asyncHandler(async (req, res) => {
+  const invitation = await Invitation.findById(req.params.id);
+  if (!invitation) throw new Error("Invitation not found");
+
+  invitation.status = "withdrawn";
+  await invitation.save();
+
+  await logAudit({
+    action: "INVITATION_WITHDRAWN",
+    entity: "Invitation",
+    entityId: invitation._id,
+    performedBy: req.business._id,
+    role: "business",
+    description: "Invitation withdrawn",
+    req,
+  });
+
+  res.json({ message: "Invitation withdrawn" });
+});
+
+/* ======================================================
+   QUOTATION SUMMARY WITH WINNER
+====================================================== */
 export const getQuotationSummary = asyncHandler(async (req, res) => {
   const { procurementId } = req.params;
 
-  const invitations = await Invitation.find({
-    procurement: procurementId,
-    status: "submitted",
-  })
-    .populate("business", "name")
-    .populate(
-      "procurement",
-      "title referenceNumber requestingDepartment items"
-    )
-    .lean();
+  /* ================= LOAD PROCUREMENT ================= */
+  const procurementDoc = await ProcurementRequest.findById(procurementId);
 
-  if (!invitations.length) {
-    return res.status(404).json({ message: "No quotations found" });
+  if (!procurementDoc) {
+    res.status(404);
+    throw new Error("Procurement not found");
   }
 
-  const procurement = invitations[0].procurement;
+  if (!procurementDoc.bidOpened) {
+    res.status(403);
+    throw new Error("Bids are not opened yet");
+  }
 
-  // Prepare business list
-  const businesses = invitations.map((inv) => ({
+  /* ================= LOAD INVITATIONS ================= */
+  const invitations = await Invitation.find({
+    procurement: procurementId,
+  })
+    .populate("business", "name")
+    .lean();
+
+  /* ================= FILTER ONLY SUBMITTED ================= */
+  const validInvitations = invitations.filter(
+    (inv) => inv.quotation && inv.quotation.items?.length > 0
+  );
+
+  if (validInvitations.length === 0) {
+    return res.json({
+      procurement: {
+        title: procurementDoc.title,
+        referenceNumber: procurementDoc.referenceNumber,
+        requestingDepartment: procurementDoc.requestingDepartment,
+      },
+      businesses: [],
+      items: [],
+    });
+  }
+
+  /* ================= BUSINESSES ================= */
+  const businesses = validInvitations.map((inv) => ({
     businessId: inv.business._id.toString(),
     name: inv.business.name,
   }));
 
-  // Build item-based matrix
-  const items = procurement.items.map((pItem) => {
-    let lowestPrice = Infinity;
+  /* ================= BUILD ITEMS ================= */
+  const items = procurementDoc.items.map((pItem) => {
+    let bestPrice = Infinity;
     let winnerBusinessId = null;
-
     const quotes = {};
 
-    for (const inv of invitations) {
+    validInvitations.forEach((inv) => {
       const qItem = inv.quotation.items.find(
         (q) => q.procurementItemId.toString() === pItem._id.toString()
       );
 
-      if (qItem && qItem.quoted && qItem.totalPrice != null) {
-        quotes[inv.business._id] = {
-          totalPrice: qItem.totalPrice,
+      if (qItem?.unitPrice != null) {
+        quotes[inv.business._id.toString()] = {
           unitPrice: qItem.unitPrice,
-          deliveryTimeDays: qItem.deliveryTimeDays,
         };
 
-        if (qItem.totalPrice < lowestPrice) {
-          lowestPrice = qItem.totalPrice;
+        if (qItem.unitPrice < bestPrice) {
+          bestPrice = qItem.unitPrice;
           winnerBusinessId = inv.business._id.toString();
         }
       } else {
-        quotes[inv.business._id] = null; // not quoted
+        quotes[inv.business._id.toString()] = null;
       }
-    }
+    });
 
     return {
-      itemId: pItem._id,
+      itemId: pItem._id.toString(),
       itemName: pItem.itemName,
       unit: pItem.unit,
       quantity: pItem.quantity,
@@ -384,14 +303,32 @@ export const getQuotationSummary = asyncHandler(async (req, res) => {
     };
   });
 
+  /* ================= RESPONSE ================= */
   res.json({
     procurement: {
-      _id: procurement._id,
-      title: procurement.title,
-      referenceNumber: procurement.referenceNumber,
-      requestingDepartment: procurement.requestingDepartment,
+      title: procurementDoc.title,
+      referenceNumber: procurementDoc.referenceNumber,
+      requestingDepartment: procurementDoc.requestingDepartment,
     },
     businesses,
     items,
   });
 });
+
+
+export const downloadEvaluationReport = async (req, res) => {
+  try {
+    const { procurementId } = req.params;
+
+    const summary = await buildQuotationSummary(procurementId); // your existing summary logic
+
+    if (!summary) {
+      return res.status(404).json({ message: "Summary not found" });
+    }
+
+    generateEvaluationReport(res, summary);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to generate report" });
+  }
+};

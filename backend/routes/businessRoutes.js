@@ -10,8 +10,7 @@ import {
 } from "../controllers/businessController.js";
 
 import upload from "../middleware/uploadMiddleware.js";
-// Optional auth (recommended)
-// import { protect, admin } from "../middleware/authMiddleware.js";
+import { protect, admin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -21,6 +20,8 @@ const router = express.Router();
 =============================== */
 router.post(
   "/",
+  protect,
+  admin,
   upload.fields([
     { name: "logo", maxCount: 1 },
     { name: "documents", maxCount: 5 },
@@ -30,7 +31,8 @@ router.post(
 
 /* ===============================
    LIST ALL BUSINESSES
-   GET /api/businesses
+   Supports search
+   GET /api/businesses?search=abc
 =============================== */
 router.get("/", listBusinesses);
 
@@ -53,11 +55,13 @@ router.get("/category/:category", listBusinessesByCategory);
 router.get("/:id", getBusiness);
 
 /* ===============================
-   UPDATE BUSINESS (OPTIONAL FILE UPDATE)
+   UPDATE BUSINESS (ADMIN)
    PUT /api/businesses/:id
 =============================== */
 router.put(
   "/:id",
+  protect,
+  admin,
   upload.fields([
     { name: "logo", maxCount: 1 },
     { name: "documents", maxCount: 5 },
@@ -66,9 +70,9 @@ router.put(
 );
 
 /* ===============================
-   DELETE BUSINESS
+   DELETE BUSINESS (ADMIN)
    DELETE /api/businesses/:id
 =============================== */
-router.delete("/:id", deleteBusiness);
+router.delete("/:id", protect, admin, deleteBusiness);
 
 export default router;

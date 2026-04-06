@@ -9,6 +9,7 @@ import {
   getAllSubmittedQuotations,
   withdrawInvitation,
   getQuotationSummary,
+  downloadEvaluationReport,
 } from "../controllers/invitationController.js";
 
 import { protect, admin } from "../middleware/authMiddleware.js";
@@ -84,6 +85,12 @@ router.delete(
   "/:id/withdraw",
   protectBusiness,
   withdrawInvitation
+);
+router.get(
+  "/report/:procurementId",
+  protect,
+  admin,
+  downloadEvaluationReport
 );
 
 export default router;

@@ -12,16 +12,17 @@ const InviteBusinessesModal = ({ procurementId, onClose }) => {
 
   useEffect(() => {
     loadBusinesses();
-  }, []);
+  }, [search]);
 
   const loadBusinesses = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/businesses",
+        `http://localhost:5000/api/businesses?search=${search}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       setBusinesses(res.data);
     } catch {
       setMessage("❌ Failed to load businesses");
@@ -54,15 +55,12 @@ const InviteBusinessesModal = ({ procurementId, onClose }) => {
       );
 
       setMessage("✅ Businesses invited successfully");
+
       setTimeout(onClose, 1200);
     } catch {
       setMessage("❌ Invitation failed");
     }
   };
-
-  const filtered = businesses.filter((b) =>
-    b.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <div className="modal-overlay">
@@ -82,15 +80,25 @@ const InviteBusinessesModal = ({ procurementId, onClose }) => {
         />
 
         <div className="business-list">
-          {filtered.map((b) => (
+          {businesses.map((b) => (
             <label key={b._id} className="business-item">
               <input
                 type="checkbox"
                 checked={selected.includes(b._id)}
                 onChange={() => toggleSelect(b._id)}
               />
+
               <div>
                 <strong>{b.name}</strong>
+
+                <span>{b.categories?.join(", ")}</span>
+
+                <span>
+                  Contact: {b.contactPerson?.name}
+                </span>
+
+                <span>{b.phone}</span>
+
                 <span>{b.email}</span>
               </div>
             </label>

@@ -1,144 +1,125 @@
-/* ===============================
-   Container
-================================ */
-.business-list-container {
-  max-width: 1200px;
-  margin: 0 auto;
+.business-table-container {
   padding: 20px;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
-.business-list-container h2 {
-  font-size: 1.8rem;
+.business-table-container h2 {
   margin-bottom: 15px;
-  color: #1f2937;
+  font-weight: 600;
+  color: #1e293b;
 }
 
-/* Message */
+.loading {
+  padding: 20px;
+  font-size: 14px;
+}
+
 .form-message {
-  margin-bottom: 15px;
-  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #dc2626;
+}
+
+/* Scrollable wrapper */
+.table-wrapper {
+  overflow-x: auto;
+  max-height: 75vh;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
-  background: #eef2ff;
-  color: #1e3a8a;
+}
+
+/* Table */
+.business-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background-color: white;
+}
+
+/* Sticky header */
+.business-table thead {
+  background-color: #1e3a8a;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.business-table th {
+  padding: 10px;
+  text-align: left;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.business-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Hover row */
+.business-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Logo inside name */
+.name-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 500;
 }
 
-/* ===============================
-   Grid → Row-style list
-================================ */
-.business-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* ===============================
-   Business Card (Row)
-================================ */
-.business-card {
-  display: grid;
-  grid-template-columns: 60px 1fr auto;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 16px;
-  background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.business-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-}
-
-/* ===============================
-   Logo
-================================ */
 .business-logo {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-  border-radius: 6px;
-  background: #f3f4f6;
-  padding: 4px;
+  width: 26px;
+  height: 26px;
+  object-fit: cover;
+  border-radius: 4px;
 }
 
-/* ===============================
-   Business Info
-================================ */
-.business-card h3 {
-  margin: 0 0 4px;
-  font-size: 1.1rem;
-  color: #111827;
+/* Truncate long text */
+.truncate {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.business-card p {
-  margin: 2px 0;
-  font-size: 0.9rem;
-  color: #4b5563;
-}
-
-.business-card a {
+/* Links */
+.business-table a {
   color: #2563eb;
   text-decoration: none;
+  font-size: 12px;
 }
 
-.business-card a:hover {
+.business-table a:hover {
   text-decoration: underline;
 }
 
-/* ===============================
-   Actions
-================================ */
-.business-actions {
-  display: flex;
-  align-items: center;
-}
-
+/* Delete button */
 .delete-btn {
-  background: #ef4444;
-  color: #ffffff;
+  padding: 4px 8px;
+  font-size: 12px;
   border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  background-color: #dc2626;
+  color: white;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.15s ease;
 }
 
 .delete-btn:hover {
-  background: #dc2626;
+  background-color: #b91c1c;
 }
 
-/* ===============================
-   Mobile Responsive
-================================ */
-@media (max-width: 768px) {
-  .business-card {
-    grid-template-columns: 50px 1fr;
-    grid-template-rows: auto auto;
+/* Responsive */
+@media (max-width: 1024px) {
+  .business-table {
+    font-size: 12px;
   }
 
-  .business-actions {
-    grid-column: 1 / -1;
-    justify-content: flex-end;
-    margin-top: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  .business-logo {
-    width: 40px;
-    height: 40px;
-  }
-
-  .business-card h3 {
-    font-size: 1rem;
-  }
-
-  .delete-btn {
-    width: 100%;
-    padding: 10px;
+  .business-table th,
+  .business-table td {
+    padding: 6px 8px;
   }
 }

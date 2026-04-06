@@ -1,0 +1,45 @@
+.audit-container{
+padding:30px;
+background:#f7f7f7;
+min-height:100vh;
+}
+
+.audit-title{
+font-size:24px;
+margin-bottom:20px;
+}
+
+.audit-search{
+padding:10px;
+width:300px;
+margin-bottom:20px;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+.audit-table{
+width:100%;
+border-collapse:collapse;
+background:white;
+}
+
+.audit-table th{
+background:#2c3e50;
+color:white;
+padding:12px;
+text-align:left;
+}
+
+.audit-table td{
+padding:10px;
+border-bottom:1px solid #eee;
+}
+
+.audit-table tr:hover{
+background:#f1f1f1;
+}
+
+.audit-action{
+font-weight:bold;
+color:#2c3e50;
+}

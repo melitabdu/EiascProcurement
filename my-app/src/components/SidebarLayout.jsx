@@ -60,12 +60,33 @@ export default function SidebarLayout() {
                   </Link>
                 </li>
 
-                {/* ✅ NEW */}
+                {/* 🔐 Sealed / New Bids */}
                 <li>
-                  <Link to="/admin/procurements/quotations">
-                    Received Quotations
+                  <Link to="/admin/procurements/quotations/new">
+                    📨 New (Sealed) Bids
                   </Link>
                 </li>
+
+                {/* 📊 Opened Bids */}
+                <li>
+                  <Link to="/admin/procurements/quotations/opened">
+                    📊 Opened Bids
+                  </Link>
+                </li>
+
+                {/* 👥 Committee Registration */}
+                <li>
+                  <Link to="/admin/committee">
+                    👥 Committee Registration
+                  </Link>
+                </li>
+               
+
+<li>
+  <Link to="/admin/audit-logs">
+    Audit Logs
+  </Link>
+</li>
 
                 <li>
                   <Link to="/admin/advideos">Advertising Videos</Link>

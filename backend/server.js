@@ -16,6 +16,12 @@ import procurementRoutes from "./routes/procurementRoutes.js";
 import invitationRoutes from "./routes/invitationRoutes.js";
 import bidRoutes from "./routes/bidRoutes.js";
 import adVideoRoutes from "./routes/adVideoRoutes.js";
+import adminCommitteeRoutes from "./routes/adminCommitteeRoutes.js";
+import awardRoutes from "./routes/awardRoutes.js";
+import committeeMinutesRoutes from "./routes/commiteeMinutesRoutes.js";
+import auditLogRoutes from "./routes/auditLogRoutes.js";
+
+
 
 // =======================
 // Error Middleware
@@ -99,8 +105,16 @@ app.use("/api/procurements", procurementRoutes);
 app.use("/api/invitations", invitationRoutes);
 app.use("/api/bids", bidRoutes);
 
+app.use("/api/admin", adminCommitteeRoutes);
+app.use("/api/awards", awardRoutes);
+
+
+app.use("/api/committee-minutes", committeeMinutesRoutes);
+
+
 // 📺 ADS
 app.use("/api/advideos", adVideoRoutes);
+app.use("/api/audit-logs", auditLogRoutes);
 
 // =======================
 // ERROR HANDLERS (MUST BE LAST)

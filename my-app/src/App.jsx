@@ -12,7 +12,16 @@ import AddBusiness from "./pages/AddBusiness";
 import BusinessList from "./pages/BusinessList";
 import AdminProcurementManager from "./pages/AdminProcurementManager";
 import Request from "./pages/AdminRequest";
-import AdminQuotationsPage from "./pages/AdminQuotationsPage";
+
+/* ✅ Quotation Pages */
+import AdminOpenedQuotationsPage from "./pages/AdminOpenedQuotationsPage";
+import AdminNewQuotationsPage from "./pages/AdminNewQuotationsPage";
+
+/* ✅ NEW Committee Page */
+import AdminCommitteePage from "./pages/AdminCommitteePage";
+import AdminAuditLogs from "./pages/AdminAuditLogs";
+
+
 
 const App = () => {
   const token = localStorage.getItem("adminToken");
@@ -40,13 +49,26 @@ const App = () => {
         <Route path="procurements" element={<AdminProcurementManager />} />
         <Route path="procurements/requests" element={<Request />} />
 
-        {/* Quotations list with summary integration */}
+        {/* 🔐 Sealed / New Bids */}
         <Route
-          path="procurements/quotations"
-          element={<AdminQuotationsPage />}
+          path="procurements/quotations/new"
+          element={<AdminNewQuotationsPage />}
+        />
+
+        {/* 📊 Opened Bids */}
+        <Route
+          path="procurements/quotations/opened"
+          element={<AdminOpenedQuotationsPage />}
+        />
+
+        {/* 👥 Committee Registration */}
+        <Route
+          path="committee"
+          element={<AdminCommitteePage />}
         />
 
         <Route path="advideos" element={<AdminVideoManager />} />
+        <Route path="audit-logs" element={<AdminAuditLogs />} />
 
         {/* Default fallback inside admin */}
         <Route path="*" element={<Navigate to="dashboard" replace />} />

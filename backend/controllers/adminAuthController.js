@@ -1,23 +1,22 @@
 import asyncHandler from "express-async-handler";
-import bcrypt from "bcryptjs";
 import User from "../models/userModel.js";
 import generateToken from "../utils/generateToken.js";
 
 /**
- * @desc Register admin (can register multiple admins now)
+ * @desc Register admin
  * @route POST /api/admin/register
  * @access Public
  */
 export const registerAdmin = asyncHandler(async (req, res) => {
   const { fullName, email, phone, password } = req.body;
 
-  // ✅ Validate required fields
+  // Validate input
   if (!fullName || !email || !phone || !password) {
     res.status(400);
     throw new Error("Please provide all required fields");
   }
 
-  // ✅ Check if email or phone already exists
+  // Check existing admin
   const existingAdmin = await User.findOne({
     $or: [{ phone }, { email }],
     role: "admin",
@@ -28,15 +27,12 @@ export const registerAdmin = asyncHandler(async (req, res) => {
     throw new Error("Admin with this phone or email already exists");
   }
 
-  // ✅ Hash password
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  // ✅ Create admin user
+  // Create admin (password will be hashed in model)
   const admin = await User.create({
     fullName,
     email,
     phone,
-    password: hashedPassword,
+    password,
     role: "admin",
   });
 
@@ -61,21 +57,31 @@ export const registerAdmin = asyncHandler(async (req, res) => {
 export const loginAdmin = asyncHandler(async (req, res) => {
   const { phone, password } = req.body;
 
-  // ✅ Find admin by phone
+  if (!phone || !password) {
+    res.status(400);
+    throw new Error("Please provide phone and password");
+  }
+
+  // Find admin
   const admin = await User.findOne({ phone, role: "admin" });
+
   if (!admin) {
     res.status(401);
     throw new Error("Admin not found");
   }
 
-  // ✅ Compare password
-  const isMatch = await bcrypt.compare(password, admin.password);
+  // Use model method
+  const isMatch = await admin.matchPassword(password);
+
   if (!isMatch) {
     res.status(401);
     throw new Error("Invalid password");
   }
 
-  // ✅ Return admin data with token
+  // Update last login (optional but good)
+  admin.lastLogin = new Date();
+  await admin.save();
+
   res.json({
     _id: admin._id,
     fullName: admin.fullName,

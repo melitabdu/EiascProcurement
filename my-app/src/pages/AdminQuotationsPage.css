@@ -89,3 +89,93 @@
     gap: 10px;
   }
 }
+.quotation-page {
+  padding: 30px;
+  background: #f7f9fb;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.summary-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.subtitle {
+  color: #555;
+}
+
+.info-card {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.summary-table th,
+.summary-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+.summary-table th {
+  background: #1e3a8a;
+  color: white;
+}
+
+.winner-header {
+  background: #065f46 !important;
+}
+
+.winner-cell {
+  background: #d1fae5;
+  font-weight: bold;
+}
+
+.winner-name {
+  font-weight: bold;
+  color: #065f46;
+}
+
+.actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.print-button,
+.pdf-button {
+  padding: 10px 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.print-button {
+  background: #1e3a8a;
+  color: white;
+}
+
+.pdf-button {
+  background: #065f46;
+  color: white;
+}
+
+.footer-note {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: #666;
+}

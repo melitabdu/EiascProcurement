@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const businessSchema = new mongoose.Schema(
   {
+    /* =========================
+       BASIC BUSINESS INFO
+    ========================= */
+
     name: {
       type: String,
       required: true,
@@ -21,10 +25,19 @@ const businessSchema = new mongoose.Schema(
       trim: true,
     },
 
-    address: {
+    businessType: {
       type: String,
-      trim: true,
+      enum: ["Private", "PLC", "NGO", "Government", "Other"],
+      default: "Private",
     },
+
+    yearEstablished: {
+      type: Number,
+    },
+
+    /* =========================
+       CONTACT INFORMATION
+    ========================= */
 
     phone: {
       type: String,
@@ -34,7 +47,7 @@ const businessSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,        // 🔒 prevents duplicates
+      unique: true,
       lowercase: true,
       trim: true,
     },
@@ -44,18 +57,82 @@ const businessSchema = new mongoose.Schema(
       trim: true,
     },
 
-    logo: String,
+    address: {
+      type: String,
+      trim: true,
+    },
 
-    documents: [String],
+    /* =========================
+       CONTACT PERSON
+    ========================= */
+
+    contactPerson: {
+      name: {
+        type: String,
+        trim: true,
+      },
+
+      phone: {
+        type: String,
+        trim: true,
+      },
+
+      position: {
+        type: String,
+        trim: true,
+      },
+    },
+
+    /* =========================
+       LEGAL INFORMATION
+    ========================= */
+
+    tinNumber: {
+      type: String,
+      trim: true,
+    },
+
+    businessLicenseNumber: {
+      type: String,
+      trim: true,
+    },
+
+    /* =========================
+       MEDIA
+    ========================= */
+
+    logo: {
+      type: String,
+    },
+
+    documents: [
+      {
+        type: String,
+      },
+    ],
+
+    /* =========================
+       LOCATION
+    ========================= */
 
     location: {
       lat: Number,
       lng: Number,
     },
 
+    /* =========================
+       STATUS
+    ========================= */
+
     verified: {
       type: Boolean,
       default: true,
+    },
+
+    status: {
+      type: String,
+      enum: ["active", "inactive", "pending"],
+      default: "active",
     },
   },
   { timestamps: true }

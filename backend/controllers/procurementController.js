@@ -1,266 +1,416 @@
 import asyncHandler from "express-async-handler";
-import ProcurementRequest from "../models/procurementModel.js";
+import Procurement from "../models/procurementModel.js";
 import Invitation from "../models/invitationModel.js";
+import { logAudit } from "../utils/auditLogger.js";
+import User from "../models/userModel.js";
 
-/* ============================
-   CREATE PROCUREMENT (ADMIN)
-============================ */
+/* ======================================================
+   CREATE PROCUREMENT
+====================================================== */
 export const createProcurement = asyncHandler(async (req, res) => {
-  let {
-    title,
-    referenceNumber,
-    description,
-    category,
-    budget,
-    deadline,
-    requestingDepartment,
-    requestingOffice,
-    requestedBy,
-    type,
-    items,
-  } = req.body;
-
-  /* ✅ PARSE ITEMS (FORM-DATA SAFE) */
-  if (typeof items === "string") {
-    try {
-      items = JSON.parse(items);
-    } catch {
-      res.status(400);
-      throw new Error("Invalid items format");
-    }
-  }
-
-  if (!Array.isArray(items) || items.length === 0) {
-    res.status(400);
-    throw new Error("At least one procurement item is required");
-  }
-
-  for (const item of items) {
-    if (!item.itemName || !item.quantity || !item.unit) {
-      res.status(400);
-      throw new Error(
-        "Each item must have itemName, quantity and unit"
-      );
-    }
-  }
-
-  const procurement = await ProcurementRequest.create({
-    title,
-    referenceNumber,
-    description,
-    category,
-    budget,
-    deadline: new Date(deadline),
-    requestingDepartment,
-    requestingOffice: requestingOffice || "",
-    requestedBy,
-    type: type || "invited",
+  const procurement = await Procurement.create({
+    ...req.body,
     status: "draft",
-    items,
+    bidOpened: false,
+    bidOpenRequested: false,
+    bidOpenedBy: [],
     createdBy: req.user._id,
+  });
+
+  await logAudit({
+    user: req.user,
+    action: "PROCUREMENT_CREATED",
+    entityType: "Procurement",
+    entityId: procurement._id,
+    description: "Created procurement",
+    newValue: procurement,
+    req,
   });
 
   res.status(201).json(procurement);
 });
 
-/* ============================
-   GET ALL PROCUREMENTS (ADMIN)
-============================ */
+/* ======================================================
+   GET ALL PROCUREMENTS
+====================================================== */
 export const getProcurements = asyncHandler(async (req, res) => {
-  const procurements = await ProcurementRequest.find({
-    isDeleted: false,
-  })
-    .sort({ createdAt: -1 })
-    .populate("createdBy", "fullName email role");
+  const procurements = await Procurement.find()
+    .sort("-createdAt")
+    .populate("createdBy", "fullName email");
 
   res.json(procurements);
 });
 
-/* ============================
+/* ======================================================
+   GET OPEN PROCUREMENTS (PUBLIC)
+====================================================== */
+export const getOpenProcurements = asyncHandler(async (req, res) => {
+  const procurements = await Procurement.find({
+    type: "open",          // ✅ correct field
+    status: "published",   // ✅ only live procurements
+    bidOpened: false,
+    isDeleted: { $ne: true },
+  });
+
+  res.json(procurements);
+});
+
+/* ======================================================
+   GET INVITED PROCUREMENTS (BUSINESS)
+====================================================== */
+export const getInvitedProcurements = asyncHandler(async (req, res) => {
+  const invitations = await Invitation.find({
+    business: req.user._id,
+  }).populate("procurement");
+
+  res.json(invitations);
+});
+
+/* ======================================================
    UPDATE DRAFT PROCUREMENT
-============================ */
+====================================================== */
 export const updateDraftProcurement = asyncHandler(async (req, res) => {
-  const procurement = await ProcurementRequest.findById(
-    req.params.id
-  );
+  const procurement = await Procurement.findById(req.params.id);
 
-  if (!procurement) {
-    res.status(404);
-    throw new Error("Procurement not found");
-  }
+  if (!procurement) throw new Error("Procurement not found");
 
-  if (procurement.status !== "draft") {
+  if (procurement.bidOpened) {
     res.status(400);
-    throw new Error("Only draft procurements can be edited");
+    throw new Error("Cannot update. Bid already opened.");
   }
 
-  const invitationCount = await Invitation.countDocuments({
-    procurement: procurement._id,
-  });
+  const oldData = procurement.toObject();
 
-  if (invitationCount > 0) {
-    res.status(400);
-    throw new Error(
-      "Cannot edit procurement after invitations"
-    );
-  }
-
-  let { items } = req.body;
-
-  if (typeof items === "string") {
-    items = JSON.parse(items);
-  }
-
-  if (items) {
-    for (const item of items) {
-      if (!item.itemName || !item.quantity || !item.unit) {
-        res.status(400);
-        throw new Error("Invalid item data");
-      }
-    }
-    procurement.items = items;
-  }
-
-  const editableFields = [
-    "title",
-    "description",
-    "category",
-    "budget",
-    "deadline",
-    "requestingDepartment",
-    "requestingOffice",
-    "requestedBy",
-  ];
-
-  editableFields.forEach((field) => {
-    if (req.body[field] !== undefined) {
-      procurement[field] = req.body[field];
-    }
-  });
+  Object.assign(procurement, req.body);
 
   await procurement.save();
+
+  await logAudit({
+    user: req.user,
+    action: "PROCUREMENT_UPDATED",
+    entityType: "Procurement",
+    entityId: procurement._id,
+    description: "Updated procurement",
+    oldValue: oldData,
+    newValue: procurement,
+    req,
+  });
+
   res.json(procurement);
 });
 
-/* ============================
-   GET OPEN PROCUREMENTS (PUBLIC)
-============================ */
-export const getOpenProcurements = asyncHandler(async (req, res) => {
-  const procurements = await ProcurementRequest.find({
-    status: "published",
-    isDeleted: false,
-  }).sort({ deadline: 1 });
-
-  res.json(procurements);
-});
-
-/* ============================
-   GET INVITED PROCUREMENTS (BUSINESS)
-============================ */
-export const getInvitedProcurements = asyncHandler(async (req, res) => {
-  if (req.user.role !== "business") {
-    res.status(403);
-    throw new Error("Access denied");
-  }
-
-  const procurements = await ProcurementRequest.find({
-    type: "invited",
-    invitedBusinesses: req.user.businessId,
-    isDeleted: false,
-  }).select(
-    "title referenceNumber category budget deadline status items requestingDepartment"
-  );
-
-  res.json(procurements);
-});
-
-/* ============================
-   UPDATE PROCUREMENT STATUS
-============================ */
+/* ======================================================
+   UPDATE STATUS
+====================================================== */
 export const updateProcurementStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
+
+  if (!status) {
+    return res.status(400).json({ message: "Status is required" });
+  }
 
   const allowedStatuses = [
     "draft",
     "published",
     "closed",
+    "evaluated",
     "awarded",
-    "completed",
     "archived",
   ];
 
   if (!allowedStatuses.includes(status)) {
-    res.status(400);
-    throw new Error("Invalid procurement status");
+    return res.status(400).json({ message: "Invalid status value" });
   }
 
-  const procurement = await ProcurementRequest.findById(
-    req.params.id
-  );
+  const procurement = await Procurement.findById(req.params.id);
 
   if (!procurement) {
-    res.status(404);
-    throw new Error("Procurement not found");
+    return res.status(404).json({ message: "Procurement not found" });
+  }
+
+  const oldStatus = procurement.status;
+
+  if (oldStatus === status) {
+    return res.status(400).json({
+      message: "Status is already set to this value",
+    });
+  }
+
+  /* ==============================
+     PROFESSIONAL STATUS TRANSITIONS
+  ============================== */
+
+  const allowedTransitions = {
+    draft: ["published"],
+    published: ["closed"],
+    closed: ["evaluated"],
+    evaluated: ["awarded"],
+    awarded: ["archived"],
+    archived: [],
+  };
+
+  if (!allowedTransitions[oldStatus].includes(status)) {
+    return res.status(400).json({
+      message: `Cannot change status from ${oldStatus} to ${status}`,
+    });
+  }
+
+  /* ==============================
+     AUTO FLAG WHEN CLOSED
+  ============================== */
+
+  if (status === "evaluated" && !procurement.bidOpened) {
+    return res.status(400).json({
+      message: "Cannot evaluate before bid opening",
+    });
   }
 
   procurement.status = status;
+
   await procurement.save();
+
+  /* ==============================
+     AUDIT LOG
+  ============================== */
+
+  await logAudit({
+    user: req.user,
+    action: "PROCUREMENT_STATUS_UPDATED",
+    entityType: "Procurement",
+    entityId: procurement._id,
+    description: `Status changed from ${oldStatus} to ${status}`,
+    oldValue: { status: oldStatus },
+    newValue: { status },
+    req,
+  });
+
+  res.json(procurement);
+});
+/* ======================================================
+   ARCHIVE PROCUREMENT
+====================================================== */
+export const archiveProcurement = asyncHandler(async (req, res) => {
+  const procurement = await Procurement.findById(req.params.id);
+
+  if (!procurement) throw new Error("Not found");
+
+  procurement.archived = true;
+
+  await procurement.save();
+
+  await logAudit({
+    user: req.user,
+    action: "PROCUREMENT_ARCHIVED",
+    entityType: "Procurement",
+    entityId: procurement._id,
+    description: "Archived procurement",
+    newValue: { archived: true },
+    req,
+  });
+
+  res.json({ message: "Archived successfully" });
+});
+
+/* ======================================================
+   DELETE PROCUREMENT
+====================================================== */
+export const deleteProcurement = asyncHandler(async (req, res) => {
+  const procurement = await Procurement.findById(req.params.id);
+
+  if (!procurement) throw new Error("Not found");
+
+  if (procurement.bidOpened) {
+    res.status(400);
+    throw new Error("Cannot delete. Bid already opened.");
+  }
+
+  await procurement.deleteOne();
+
+  await logAudit({
+    user: req.user,
+    action: "PROCUREMENT_DELETED",
+    entityType: "Procurement",
+    entityId: procurement._id,
+    description: "Deleted procurement",
+    req,
+  });
+
+  res.json({ message: "Deleted successfully" });
+});
+
+/* ======================================================
+   EXTEND DEADLINE
+====================================================== */
+export const extendDeadline = asyncHandler(async (req, res) => {
+  const procurement = await Procurement.findById(req.params.id);
+
+  if (!procurement) throw new Error("Not found");
+
+  if (procurement.bidOpened) {
+    res.status(400);
+    throw new Error("Cannot extend deadline. Bid already opened.");
+  }
+
+  const oldDeadline = procurement.deadline;
+
+  procurement.deadline = req.body.deadline;
+
+  await procurement.save();
+
+  await logAudit({
+    user: req.user,
+    action: "DEADLINE_EXTENDED",
+    entityType: "Procurement",
+    entityId: procurement._id,
+    description: "Deadline extended",
+    oldValue: { deadline: oldDeadline },
+    newValue: { deadline: req.body.deadline },
+    req,
+  });
 
   res.json(procurement);
 });
 
-/* ============================
-   ARCHIVE PROCUREMENT (SOFT)
-============================ */
-export const archiveProcurement = asyncHandler(async (req, res) => {
-  const procurement = await ProcurementRequest.findById(
-    req.params.id
-  );
+/* ======================================================
+   ADMIN REQUEST BID OPEN
+====================================================== */
+export const approveBidOpen = asyncHandler(async (req, res) => {
+  const procurement = await Procurement.findById(req.params.id);
 
-  if (!procurement) {
-    res.status(404);
-    throw new Error("Procurement not found");
+  if (!procurement) throw new Error("Not found");
+
+  if (procurement.bidOpened) {
+    return res.status(400).json({
+      message: "Bid already opened",
+      bidOpened: true,
+    });
   }
 
-  procurement.isDeleted = true;
-  procurement.status = "archived";
+  procurement.bidOpenRequested = true;
 
   await procurement.save();
 
-  res.json({ message: "Procurement archived successfully" });
+  await logAudit({
+    user: req.user,
+    action: "BID_OPEN_REQUESTED",
+    entityType: "Procurement",
+    entityId: procurement._id,
+    description: "Admin requested bid opening ceremony",
+    req,
+  });
+
+  res.json({ message: "Bid opening ceremony initiated" });
 });
 
-/* ============================
-   DELETE PROCUREMENT (HARD)
-============================ */
-export const deleteProcurement = asyncHandler(async (req, res) => {
-  const procurement = await ProcurementRequest.findById(
-    req.params.id
-  );
+/* ======================================================
+   COMMITTEE APPROVAL
+====================================================== */
+export const committeeApproveOpen = asyncHandler(async (req, res) => {
+  const { phone, password } = req.body;
+
+  const procurement = await Procurement.findById(req.params.id);
 
   if (!procurement) {
     res.status(404);
     throw new Error("Procurement not found");
   }
 
-  if (procurement.status !== "draft") {
-    res.status(400);
-    throw new Error(
-      "Only draft procurements can be deleted"
-    );
+  if (procurement.bidOpened) {
+    return res.status(400).json({
+      message: "Bid already opened",
+      bidOpened: true,
+    });
   }
 
-  const invitationsCount = await Invitation.countDocuments({
-    procurement: procurement._id,
+  if (!procurement.bidOpenRequested) {
+    return res.status(400).json({
+      message: "Opening ceremony not initiated by admin",
+    });
+  }
+
+  const member = await User.findOne({ phone, role: "committee" });
+
+  if (!member || !(await member.matchPassword(password))) {
+    res.status(401);
+    throw new Error("Invalid committee credentials");
+  }
+
+  const alreadyApproved = procurement.bidOpenedBy.find(
+    (m) => m.user.toString() === member._id.toString()
+  );
+
+  if (alreadyApproved) {
+    return res.status(400).json({
+      message: "You already approved",
+    });
+  }
+
+  procurement.bidOpenedBy.push({
+    user: member._id,
+    fullName: member.fullName,
+    approvedAt: new Date(),
   });
 
-  if (invitationsCount > 0) {
-    res.status(400);
-    throw new Error(
-      "Cannot delete procurement with invitations"
-    );
+  await logAudit({
+    user: member,
+    action: "BID_OPEN_APPROVED",
+    entityType: "Procurement",
+    entityId: procurement._id,
+    description: "Committee member approved bid opening",
+    req,
+  });
+
+  if (procurement.bidOpenedBy.length >= 3) {
+    procurement.bidOpened = true;
+    procurement.bidOpenedAt = new Date();
+    procurement.status = "closed";
+
+    await logAudit({
+      user: member,
+      action: "BID_OPENED",
+      entityType: "Procurement",
+      entityId: procurement._id,
+      description: "Bid opened automatically after committee approval",
+      req,
+    });
   }
 
-  await procurement.deleteOne();
-  res.json({ message: "Procurement permanently deleted" });
+  await procurement.save();
+
+  res.json({
+    message: "Approval recorded",
+    approvalsCount: procurement.bidOpenedBy.length,
+    bidOpened: procurement.bidOpened,
+  });
+});
+
+/* ======================================================
+   MANUAL FINALIZE (ADMIN FORCE OPEN)
+====================================================== */
+export const finalizeBidOpen = asyncHandler(async (req, res) => {
+  const procurement = await Procurement.findById(req.params.id);
+
+  if (!procurement) throw new Error("Not found");
+
+  if (procurement.bidOpened) {
+    res.status(400);
+    throw new Error("Bid already opened");
+  }
+
+  procurement.bidOpened = true;
+  procurement.bidOpenedAt = new Date();
+  procurement.status = "closed";
+
+  await procurement.save();
+
+  await logAudit({
+    user: req.user,
+    action: "BID_OPENED",
+    entityType: "Procurement",
+    entityId: procurement._id,
+    description: "Bid opened and submissions locked",
+    req,
+  });
+
+  res.json({ message: "Bid opened successfully" });
 });

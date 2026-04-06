@@ -11,8 +11,8 @@ const userSchema = new mongoose.Schema(
 
     email: {
       type: String,
-      required: true,
       unique: true,
+      sparse: true,
       lowercase: true,
       trim: true,
     },
@@ -30,20 +30,17 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
     },
 
-    // ✅ Roles for procurement system
     role: {
       type: String,
-      enum: ["admin", "business", "staff"],
+      enum: ["admin", "business", "staff", "committee"],
       default: "business",
     },
 
-    // ✅ Linked business (only for business users)
     businessId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Business",
     },
 
-    // ✅ Account status
     status: {
       type: String,
       enum: ["active", "inactive", "pending"],
@@ -60,7 +57,7 @@ const userSchema = new mongoose.Schema(
 );
 
 /* =====================================
-   🔐 PASSWORD HASHING (CRITICAL)
+   🔐 HASH PASSWORD BEFORE SAVE
 ===================================== */
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
@@ -73,5 +70,12 @@ userSchema.pre("save", async function (next) {
     next(error);
   }
 });
+
+/* =====================================
+   🔑 COMPARE PASSWORD
+===================================== */
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 export default mongoose.model("User", userSchema);
