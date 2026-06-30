@@ -5,159 +5,108 @@ import User from "../models/userModel.js";
 import cloudinary from "../config/cloudinary.js";
 
 /* ===============================
-   CREATE BUSINESS
+   CREATE BUSINESS (FIXED)
 =============================== */
-export const createBusiness = asyncHandler(async (req, res) => {
-  const {
-    name,
-    categories,
-    description,
-    address,
-    phone,
-    email,
-    website,
-    password,
-    latitude,
-    longitude,
 
-    contactPersonName,
-    contactPersonPhone,
-    contactPersonPosition,
+export const createBusiness = async (req, res) => {
+  try {
+    console.log("========== CREATE BUSINESS START ==========");
 
-    businessType,
-    tinNumber,
-    businessLicenseNumber,
-    yearEstablished,
-  } = req.body;
+    const {
+      name,
+      categories,
+      email,
+      password,
+      contactPersonName,
+      contactPersonPhone,
+      phone,
+      address,
+      website,
+    } = req.body;
 
-  if (!name || !categories || !email || !password) {
-    res.status(400);
-    throw new Error(
-      "Name, categories, email, and password are required"
-    );
-  }
+    if (!name || !categories || !email || !password) {
+      return res.status(400).json({
+        message: "Missing required fields",
+      });
+    }
 
-  /* ===============================
-     CHECK DUPLICATES
-  =============================== */
+    const existing = await Business.findOne({ email });
 
-  const businessExists = await Business.findOne({ email });
+    if (existing) {
+      return res.status(400).json({
+        message: "Business already exists",
+      });
+    }
 
-  if (businessExists) {
-    res.status(400);
-    throw new Error("Business with this email already exists");
-  }
+    /* =========================
+       UPLOAD LOGO
+    ========================= */
+    let logoUrl = "";
 
-  const userExists = await User.findOne({
-    phone: contactPersonPhone,
-  });
+    const logoFile = req.files?.logo?.[0];
 
-  if (userExists) {
-    res.status(400);
-    throw new Error("Phone number already used");
-  }
-
-  /* ===============================
-     LOGO UPLOAD
-  =============================== */
-
-  let logoUrl = "";
-
-  if (req.files?.logo?.length) {
-    const logoFile = req.files.logo[0];
-
-    try {
+    if (logoFile) {
       const upload = await cloudinary.uploader.upload(logoFile.path, {
         folder: "businesses/logos",
       });
 
       logoUrl = upload.secure_url;
-    } finally {
-      fs.existsSync(logoFile.path) && fs.unlinkSync(logoFile.path);
+      fs.unlinkSync(logoFile.path);
     }
-  }
 
-  /* ===============================
-     DOCUMENT UPLOAD
-  =============================== */
+    /* =========================
+       CREATE BUSINESS
+    ========================= */
+    const business = await Business.create({
+      name,
+      categories: Array.isArray(categories) ? categories : [categories],
+      email,
+      phone,
+      address,
+      website,
+      logo: logoUrl,
+      contactPerson: {
+        name: contactPersonName,
+        phone: contactPersonPhone,
+      },
+    });
 
-  const documentUrls = [];
+    /* =========================
+       HASH PASSWORD (FIX HERE)
+    ========================= */
+   
 
-  if (req.files?.documents?.length) {
-    for (const file of req.files.documents) {
-      try {
-        const upload = await cloudinary.uploader.upload(file.path, {
-          folder: "businesses/documents",
-          resource_type: "raw",
-        });
-
-        documentUrls.push(upload.secure_url);
-      } finally {
-        fs.existsSync(file.path) && fs.unlinkSync(file.path);
-      }
-    }
-  }
-
-  /* ===============================
-     CREATE BUSINESS
-  =============================== */
-
-  const business = await Business.create({
-    name,
-    categories: Array.isArray(categories)
-      ? categories
-      : [categories],
-
-    description,
-    address,
-    phone,
-    email,
-    website,
-
-    businessType,
-    tinNumber,
-    businessLicenseNumber,
-    yearEstablished,
-
-    contactPerson: {
-      name: contactPersonName,
+    /* =========================
+       CREATE LOGIN USER
+    ========================= */
+    await User.create({
+      fullName: contactPersonName || `${name} Admin`,
       phone: contactPersonPhone,
-      position: contactPersonPosition,
-    },
+      email,
+      password,
+      role: "business",
+      businessId: business._id,
+      status: "active",
+    });
 
-    logo: logoUrl,
-    documents: documentUrls,
+    console.log("SUCCESS:", business._id);
 
-    location:
-      latitude && longitude
-        ? { lat: latitude, lng: longitude }
-        : undefined,
+    return res.status(201).json({
+      message: "Business created successfully",
+      business,
+    });
+  } catch (error) {
+    console.error("🔥 REAL ERROR:");
+    console.error(error);
 
-    verified: true,
-  });
-
-  /* ===============================
-     CREATE BUSINESS LOGIN USER
-  =============================== */
-
-  await User.create({
-    fullName: contactPersonName || `${name} Admin`,
-    phone: contactPersonPhone,
-    email,
-    password,
-    role: "business",
-    businessId: business._id,
-    status: "active",
-  });
-
-  res.status(201).json({
-    message: "Business registered successfully",
-    business,
-  });
-});
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 
 /* ===============================
-   LIST BUSINESSES + SEARCH
+   LIST BUSINESSES
 =============================== */
 export const listBusinesses = asyncHandler(async (req, res) => {
   const { search } = req.query;
@@ -184,7 +133,7 @@ export const listBusinesses = asyncHandler(async (req, res) => {
 });
 
 /* ===============================
-   GET SINGLE BUSINESS
+   GET BUSINESS
 =============================== */
 export const getBusiness = asyncHandler(async (req, res) => {
   const business = await Business.findById(req.params.id);
@@ -242,22 +191,20 @@ export const deleteBusiness = asyncHandler(async (req, res) => {
 });
 
 /* ===============================
-   LIST UNIQUE CATEGORIES
+   LIST CATEGORIES
 =============================== */
 export const listCategories = asyncHandler(async (req, res) => {
   const categories = await Business.distinct("categories");
-
   res.json(categories);
 });
 
 /* ===============================
    BUSINESSES BY CATEGORY
 =============================== */
-export const listBusinessesByCategory =
-  asyncHandler(async (req, res) => {
-    const businesses = await Business.find({
-      categories: req.params.category,
-    }).sort({ createdAt: -1 });
+export const listBusinessesByCategory = asyncHandler(async (req, res) => {
+  const businesses = await Business.find({
+    categories: req.params.category,
+  }).sort({ createdAt: -1 });
 
-    res.json(businesses);
-  });
+  res.json(businesses);
+});
