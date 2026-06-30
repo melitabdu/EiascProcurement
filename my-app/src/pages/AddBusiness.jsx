@@ -83,71 +83,55 @@ const AddBusiness = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
-    setLoading(true);
+  e.preventDefault();
+  setMessage("");
+  setLoading(true);
 
-    try {
-      const formData = new FormData();
+  try {
+    const formData = new FormData();
 
-      formData.append("name", form.name);
-      form.categories.forEach((c) => formData.append("categories[]", c));
-      formData.append("description", form.description);
-      formData.append("address", form.address);
-      formData.append("phone", form.phone);
-      formData.append("email", form.email);
-      formData.append("website", form.website);
-      formData.append("password", form.password);
-      formData.append("latitude", form.latitude);
-      formData.append("longitude", form.longitude);
+    formData.append("name", form.name);
+    form.categories.forEach((c) => formData.append("categories[]", c));
+    formData.append("description", form.description);
+    formData.append("address", form.address);
+    formData.append("phone", form.phone);
+    formData.append("email", form.email);
+    formData.append("website", form.website);
+    formData.append("password", form.password);
+    formData.append("latitude", form.latitude);
+    formData.append("longitude", form.longitude);
 
-      // ✅ CONTACT PERSON DATA
-      formData.append("contactPersonName", form.contactPersonName);
-      formData.append("contactPersonPhone", form.contactPersonPhone);
-      formData.append("contactPersonPosition", form.contactPersonPosition);
+    formData.append("contactPersonName", form.contactPersonName);
+    formData.append("contactPersonPhone", form.contactPersonPhone);
+    formData.append("contactPersonPosition", form.contactPersonPosition);
 
-      if (logo) formData.append("logo", logo);
-      documents.forEach((doc) => formData.append("documents", doc));
+    if (logo) formData.append("logo", logo);
 
-      const res = await axios.post(
-        "http://localhost:5000/api/businesses",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${adminToken}`,
-          },
-        }
-      );
+    documents.forEach((doc) => formData.append("documents", doc));
 
-      setMessage(`✅ Business "${res.data.business.name}" added successfully`);
+    const res = await axios.post(
+      "http://localhost:5000/api/businesses",
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
 
-      // Reset form
-      setForm({
-        name: "",
-        categories: [],
-        description: "",
-        address: "",
-        phone: "",
-        email: "",
-        website: "",
-        latitude: "",
-        longitude: "",
-        password: "",
-        contactPersonName: "",
-        contactPersonPhone: "",
-        contactPersonPosition: "",
-      });
+    console.log("SUCCESS:", res.data);
 
-      setLogo(null);
-      setDocuments([]);
-    } catch (err) {
-      setMessage(err.response?.data?.message || "❌ Failed to add business");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setMessage(`✅ Business "${res.data.business.name}" added successfully`);
+  } catch (err) {
+    console.log("SERVER RESPONSE:", err.response?.data);
+    console.log("STATUS:", err.response?.status);
+    console.error(err);
 
+    setMessage(err.response?.data?.message || "Failed to add business");
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="add-mosque-container">
       <h2>Add Business</h2>
@@ -250,6 +234,6 @@ const AddBusiness = () => {
       </form>
     </div>
   );
-};
 
+}
 export default AddBusiness;
