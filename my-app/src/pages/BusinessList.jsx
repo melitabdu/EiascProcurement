@@ -20,7 +20,7 @@ const BusinessList = () => {
     setMessage("");
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/businesses",
+        `${import.meta.env.VITE_API_URL}/api/businesses`,
         authConfig
       );
       setBusinesses(res.data);
@@ -40,7 +40,7 @@ const BusinessList = () => {
 
     try {
       await axios.delete(
-        `http://localhost:5000/api/businesses/${id}`,
+        `${import.meta.env.VITE_API_URL}/api/businesses/${id}`,
         authConfig
       );
       setMessage("✅ Business deleted successfully");

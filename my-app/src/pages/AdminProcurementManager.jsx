@@ -44,7 +44,7 @@ const AdminProcurementManagement = () => {
   const loadProcurements = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/procurements",
+        `${import.meta.env.VITE_API_URL}/api/procurements`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setProcurements(res.data || []);
@@ -61,7 +61,7 @@ const AdminProcurementManagement = () => {
   const updateStatus = async (id, newStatus) => {
     try {
       const res = await axios.patch(
-        `http://localhost:5000/api/procurements/${id}/status`,
+        `${import.meta.env.VITE_API_URL}/api/procurements/${id}/status`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -133,7 +133,7 @@ const AdminProcurementManagement = () => {
     try {
       if (editId) {
         await axios.put(
-          `http://localhost:5000/api/procurements/${editId}`,
+          `${import.meta.env.VITE_API_URL}/api/procurements/${editId}`,
           {
             title,
             referenceNumber,
@@ -152,7 +152,7 @@ const AdminProcurementManagement = () => {
         setMessage("✅ Procurement updated successfully");
       } else {
         await axios.post(
-          "http://localhost:5000/api/procurements",
+          `${import.meta.env.VITE_API_URL}/api/procurements`,
           {
             title,
             referenceNumber,

@@ -21,7 +21,7 @@ const AdminCommitteePage = () => {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/admin/committee",
+        `${import.meta.env.VITE_API_URL}/api/admin/committee`,
         {
           fullName,
           phone,

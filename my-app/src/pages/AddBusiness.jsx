@@ -110,14 +110,15 @@ const AddBusiness = () => {
     documents.forEach((doc) => formData.append("documents", doc));
 
     const res = await axios.post(
-      "http://localhost:5000/api/businesses",
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${adminToken}`,
-        },
-      }
-    );
+  `${import.meta.env.VITE_API_URL}/api/businesses`,
+  formData,
+  {
+    headers: {
+      Authorization: `Bearer ${adminToken}`,
+    },
+  }
+);
+    
 
     console.log("SUCCESS:", res.data);
 

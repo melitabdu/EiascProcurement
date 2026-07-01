@@ -13,17 +13,19 @@ const AdminVideoManager = () => {
 
   // ✅ Fetch existing videos
   useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const res = await axios.get('/advideos');
-        setVideos(res.data.videos); // ✅ Only assign the actual array
-      } catch (err) {
-        setError('Failed to load videos');
-      }
-    };
-    fetchVideos();
-  }, []);
+  const fetchVideos = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/advideos`
+      );
+      setVideos(res.data.videos); // correct
+    } catch (err) {
+      setError("Failed to load videos");
+    }
+  };
 
+  fetchVideos();
+}, []);
   // ✅ Handle submit
   const handleAddVideo = async (e) => {
     e.preventDefault();

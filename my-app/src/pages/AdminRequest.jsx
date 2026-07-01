@@ -16,13 +16,16 @@ const Request = () => {
   // Fetch all requests by logged-in staff
   useEffect(() => {
     const fetchRequests = async () => {
-      try {
-        const res = await axios.get('/api/requests/my');
-        setRequests(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+  try {
+    const res = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/requests/my`
+    );
+    setRequests(res.data);
+  } catch (err) {
+    console.error(err);
+  }
+};
+    
     fetchRequests();
   }, []);
 

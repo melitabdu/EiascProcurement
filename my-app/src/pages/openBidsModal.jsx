@@ -22,7 +22,7 @@ const OpenBidsModal = ({ procurement, onClose, onOpened }) => {
   const initiateOpening = async () => {
   try {
     const res = await axios.post(
-      `http://localhost:5000/api/procurements/${procurement._id}/approve-open`,
+      `${import.meta.env.VITE_API_URL}/api/procurements/${procurement._id}/approve-open`,
       {}, // no body needed
       {
         headers: {
@@ -46,7 +46,7 @@ const OpenBidsModal = ({ procurement, onClose, onOpened }) => {
   const approve = async () => {
     try {
       const res = await axios.post(
-        `http://localhost:5000/api/procurements/${procurement._id}/committee-approve`,
+        `${import.meta.env.VITE_API_URL}/api/procurements/${procurement._id}/committee-approve`,
         { phone, password },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -77,7 +77,7 @@ const OpenBidsModal = ({ procurement, onClose, onOpened }) => {
   const finalize = async () => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/procurements/${procurement._id}/finalize-open`,
+        `${import.meta.env.VITE_API_URL}/api/procurements/${procurement._id}/finalize-open`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

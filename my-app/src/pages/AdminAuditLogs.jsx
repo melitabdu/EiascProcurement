@@ -13,19 +13,23 @@ const AdminAuditLogs = () => {
   }, []);
 
   const fetchLogs = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:5000/api/audit-logs",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+  try {
+    const res = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/audit-logs`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-      setLogs(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+    setLogs(res.data);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+
 
   const filteredLogs = logs.filter((log) =>
     log.action.toLowerCase().includes(search.toLowerCase())

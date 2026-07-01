@@ -20,7 +20,7 @@ const CommitteeMinutesForm = ({ procurementId, onSaved }) => {
     const loadMinutes = async () => {
       try {
         const res = await axios.get(
-  `http://localhost:5000/api/committee-minutes/procurement/${procurementId}`,
+  `${import.meta.env.VITE_API_URL}/api/committee-minutes/procurement/${procurementId}`,
   { headers: { Authorization: `Bearer ${token}` } }
 );
 

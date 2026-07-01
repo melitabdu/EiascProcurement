@@ -17,7 +17,7 @@ const InviteBusinessesModal = ({ procurementId, onClose }) => {
   const loadBusinesses = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/businesses?search=${search}`,
+        `${import.meta.env.VITE_API_URL}/api/businesses?search=${search}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
