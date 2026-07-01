@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 
 import AdminLogin from "./pages/AdminLogin";
-import AdminDashbord from "./pages/AdminDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import SidebarLayout from "./components/SidebarLayout";
 import AdminRoute from "./components/AdminRoutes";
 import AdminVideoManager from "./pages/AdVideoManager";
