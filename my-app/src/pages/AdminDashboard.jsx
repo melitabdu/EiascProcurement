@@ -1,6 +1,6 @@
 // src/pages/AdminDashboard.jsx
 import React, { useState } from 'react';
-import './AdminDashboard.css';
+import './AdminDashBoard.css';
 
 const AdminDashboard = () => {
   const [search, setSearch] = useState('');
