@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useBusinessAuth } from "../context/BusinessAuthContext";
 import "./BusinessDashboard.css";
@@ -11,11 +11,7 @@ const BusinessDashboard = () => {
 
   const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
 
-  useEffect(() => {
-    if (business?.businessId) loadInvitations();
-  }, [business]);
-
-  const loadInvitations = async () => {
+  const loadInvitations = useCallback(async () => {
     try {
       const res = await axios.get(
         "https://eiascprocurement-2.onrender.com/api/invitations/business",
@@ -26,7 +22,13 @@ const BusinessDashboard = () => {
       console.error(err);
       setMessage(err.response?.data?.message || "❌ Failed to load invitations");
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (business?.businessId) {
+      loadInvitations();
+    }
+  }, [business, loadInvitations]);
 
   const handleItemChange = (invId, itemId, field, value) => {
     setQuotes((prev) => ({
@@ -86,6 +88,7 @@ const BusinessDashboard = () => {
   const withdrawInvitation = async (invId) => {
     if (!window.confirm("Are you sure you want to withdraw this invitation?"))
       return;
+
     try {
       await axios.delete(
         `https://eiascprocurement-2.onrender.com/api/invitations/${invId}/withdraw`,
@@ -125,6 +128,7 @@ const BusinessDashboard = () => {
             description: "",
           };
           const q = quotes[inv._id] || {};
+
           return (
             <div key={inv._id} className="invitation-card">
               <div className="inv-header">
@@ -140,17 +144,13 @@ const BusinessDashboard = () => {
                 </p>
                 <p>
                   <b>Deadline:</b>{" "}
-                  {p.deadline
-                    ? new Date(p.deadline).toDateString()
-                    : "-"}
+                  {p.deadline ? new Date(p.deadline).toDateString() : "-"}
                 </p>
               </div>
 
               {p.description && (
                 <div className="inv-description">
-                  <p>
-                    <b>Description:</b>
-                  </p>
+                  <p><b>Description:</b></p>
                   <p className="description-text">{p.description}</p>
                 </div>
               )}
@@ -168,12 +168,14 @@ const BusinessDashboard = () => {
                       <th>Remarks</th>
                     </tr>
                   </thead>
+
                   <tbody>
                     {(p.items || []).map((item) => {
                       const itemQuote = q.items?.[item._id] || {};
                       const total = itemQuote.unitPrice
                         ? itemQuote.unitPrice * item.quantity
                         : "";
+
                       return (
                         <tr key={item._id}>
                           <td>{item.itemName}</td>
@@ -182,7 +184,6 @@ const BusinessDashboard = () => {
                           <td>
                             <input
                               type="number"
-                              placeholder="ETB"
                               value={itemQuote.unitPrice || ""}
                               onChange={(e) =>
                                 handleItemChange(
@@ -198,7 +199,6 @@ const BusinessDashboard = () => {
                           <td>
                             <input
                               type="number"
-                              placeholder="Days"
                               value={itemQuote.deliveryTimeDays || ""}
                               onChange={(e) =>
                                 handleItemChange(
@@ -213,7 +213,6 @@ const BusinessDashboard = () => {
                           <td>
                             <input
                               type="text"
-                              placeholder="Optional"
                               value={itemQuote.remarks || ""}
                               onChange={(e) =>
                                 handleItemChange(
@@ -253,8 +252,8 @@ const BusinessDashboard = () => {
                         }
                       />
                     </label>
+
                     <textarea
-                      placeholder="General remarks (optional)"
                       value={q.generalRemarks || ""}
                       onChange={(e) =>
                         handleGeneralChange(
@@ -264,15 +263,17 @@ const BusinessDashboard = () => {
                         )
                       }
                     />
+
                     <div className="button-row">
                       <button onClick={() => submitQuotation(inv)}>
                         Submit Quotation
                       </button>
+
                       <button
                         className="delete-btn"
                         onClick={() => withdrawInvitation(inv._id)}
                       >
-                        Withdraw Invitation
+                        Withdraw
                       </button>
                     </div>
                   </>
