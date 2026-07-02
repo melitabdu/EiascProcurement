@@ -18,7 +18,7 @@ const BusinessDashboard = () => {
   const loadInvitations = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/invitations/business",
+        "https://eiascprocurement-2.onrender.com/api/invitations/business",
         authHeaders
       );
       setInvitations(res.data || []);
@@ -67,7 +67,7 @@ const BusinessDashboard = () => {
 
     try {
       await axios.post(
-        `http://localhost:5000/api/invitations/${inv._id}/quotation`,
+        `https://eiascprocurement-2.onrender.com/api/invitations/${inv._id}/quotation`,
         {
           items: itemsPayload,
           priceValidityUntil: q.priceValidityUntil,
@@ -88,7 +88,7 @@ const BusinessDashboard = () => {
       return;
     try {
       await axios.delete(
-        `http://localhost:5000/api/invitations/${invId}/withdraw`,
+        `https://eiascprocurement-2.onrender.com/api/invitations/${invId}/withdraw`,
         authHeaders
       );
       setMessage("✅ Invitation withdrawn successfully");

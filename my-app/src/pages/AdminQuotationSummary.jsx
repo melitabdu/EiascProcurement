@@ -19,7 +19,7 @@ const AdminQuotationSummary = ({ procurementId }) => {
         /* ================= SUMMARY ================= */
 
         const summaryRes = await axios.get(
-          `http://localhost:5000/api/invitations/summary/${procurementId}`,
+          `${import.meta.env.VITE_API_URL}/api/invitations/summary/${procurementId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -28,7 +28,7 @@ const AdminQuotationSummary = ({ procurementId }) => {
         /* ================= PROCUREMENT ================= */
 
         const procurementRes = await axios.get(
-          `http://localhost:5000/api/procurements/${procurementId}`,
+          `${import.meta.env.VITE_API_URL}/api/procurements/${procurementId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -44,7 +44,7 @@ const AdminQuotationSummary = ({ procurementId }) => {
 
         try {
           const minutesRes = await axios.get(
-            `http://localhost:5000/api/committee-minutes/procurement/${procurementId}`,
+            `${import.meta.env.VITE_API_URL}/api/committee-minutes/procurement/${procurementId}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
@@ -75,7 +75,7 @@ const AdminQuotationSummary = ({ procurementId }) => {
     try {
 
       const response = await axios.get(
-        `http://localhost:5000/api/committee-minutes/${procurementId}/pdf`,
+        `${import.meta.env.VITE_API_URL}/api/committee-minutes/${procurementId}/pdf`,
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: "blob",

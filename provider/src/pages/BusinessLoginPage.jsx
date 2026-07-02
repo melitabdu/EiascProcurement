@@ -9,6 +9,7 @@ const BusinessLoginPage = () => {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
   const { loginBusiness, business } = useBusinessAuth();
   const navigate = useNavigate();
 
@@ -24,22 +25,25 @@ const BusinessLoginPage = () => {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/business/login", {
-        phone,
-        password,
-      });
+      const res = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/business/login`,
+        {
+          phone,
+          password,
+        }
+      );
 
-      // loginBusiness stores token + business info
+      // Store token + business info
       loginBusiness(res.data.token, res.data.business);
 
       setMessage("✅ Login successful!");
-      setLoading(false);
 
-      // redirect to dashboard
+      // Redirect to dashboard
       navigate("/business/dashboard");
     } catch (err) {
       console.error(err);
       setMessage(err.response?.data?.message || "❌ Login failed");
+    } finally {
       setLoading(false);
     }
   };
@@ -51,14 +55,22 @@ const BusinessLoginPage = () => {
       {business && (
         <div className="business-preview">
           {business.logo && (
-            <img src={business.logo} alt="Business Logo" className="business-logo-preview" />
+            <img
+              src={business.logo}
+              alt="Business Logo"
+              className="business-logo-preview"
+            />
           )}
           <h3>{business.name}</h3>
         </div>
       )}
 
       {message && (
-        <p className={`form-message ${message.startsWith("❌") ? "error" : "success"}`}>
+        <p
+          className={`form-message ${
+            message.startsWith("❌") ? "error" : "success"
+          }`}
+        >
           {message}
         </p>
       )}
