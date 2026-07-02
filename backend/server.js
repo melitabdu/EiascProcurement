@@ -53,7 +53,7 @@ const allowedOrigins = [
   "http://localhost:5734",
   "http://localhost:3000",
   "https://eiasc-procurement-esmp.vercel.app",
-  "https://eiascbusinessprocurement.vercel.app/",
+  "https://eiascbusinessprocurement.vercel.app",
 ];
 
 app.use(
