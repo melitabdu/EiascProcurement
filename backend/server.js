@@ -48,17 +48,19 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // =======================
 // CORS
 // =======================
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5734",
+  "http://localhost:3000",
+  "https://eiasc-procurement-pink.vercel.app",
+];
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5734",
-      "http://localhost:3000",
-    ],
+    origin: allowedOrigins,
     credentials: true,
   })
 );
-
 // =======================
 // LOGGER
 // =======================
