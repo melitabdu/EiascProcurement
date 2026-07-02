@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import axios from "axios";
 import { useBusinessAuth } from "../context/BusinessAuthContext";
 import "./BusinessDashboard.css";
@@ -9,8 +9,12 @@ const BusinessDashboard = () => {
   const [quotes, setQuotes] = useState({});
   const [message, setMessage] = useState("");
 
-  const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
+  // ✅ FIX: stable auth headers
+  const authHeaders = useMemo(() => {
+    return { headers: { Authorization: `Bearer ${token}` } };
+  }, [token]);
 
+  // ✅ FIX: stable function with correct dependency
   const loadInvitations = useCallback(async () => {
     try {
       const res = await axios.get(
@@ -22,7 +26,7 @@ const BusinessDashboard = () => {
       console.error(err);
       setMessage(err.response?.data?.message || "❌ Failed to load invitations");
     }
-  }, [token]);
+  }, [authHeaders]);
 
   useEffect(() => {
     if (business?.businessId) {
@@ -52,8 +56,10 @@ const BusinessDashboard = () => {
 
   const submitQuotation = async (inv) => {
     const q = quotes[inv._id];
-    if (!q?.priceValidityUntil)
+
+    if (!q?.priceValidityUntil) {
       return setMessage("❌ Price validity date is required");
+    }
 
     const itemsPayload = (inv.procurement?.items || []).map((item) => {
       const data = q?.items?.[item._id] || {};
@@ -77,6 +83,7 @@ const BusinessDashboard = () => {
         },
         authHeaders
       );
+
       setMessage("✅ Quotation submitted successfully");
       loadInvitations();
     } catch (err) {
@@ -94,6 +101,7 @@ const BusinessDashboard = () => {
         `https://eiascprocurement-2.onrender.com/api/invitations/${invId}/withdraw`,
         authHeaders
       );
+
       setMessage("✅ Invitation withdrawn successfully");
       setInvitations((prev) => prev.filter((inv) => inv._id !== invId));
     } catch (err) {
@@ -108,7 +116,9 @@ const BusinessDashboard = () => {
         {business?.logo && (
           <img src={business.logo} alt="Logo" className="business-logo" />
         )}
+
         <h2>{business?.name || "Supplier Dashboard"}</h2>
+
         <button className="logout-btn" onClick={logoutBusiness}>
           Logout
         </button>
@@ -127,6 +137,7 @@ const BusinessDashboard = () => {
             items: [],
             description: "",
           };
+
           const q = quotes[inv._id] || {};
 
           return (
@@ -150,7 +161,9 @@ const BusinessDashboard = () => {
 
               {p.description && (
                 <div className="inv-description">
-                  <p><b>Description:</b></p>
+                  <p>
+                    <b>Description:</b>
+                  </p>
                   <p className="description-text">{p.description}</p>
                 </div>
               )}
@@ -181,6 +194,7 @@ const BusinessDashboard = () => {
                           <td>{item.itemName}</td>
                           <td>{item.quantity}</td>
                           <td>{item.unit}</td>
+
                           <td>
                             <input
                               type="number"
@@ -195,7 +209,9 @@ const BusinessDashboard = () => {
                               }
                             />
                           </td>
+
                           <td>{total ? `${total} ETB` : "-"}</td>
+
                           <td>
                             <input
                               type="number"
@@ -210,6 +226,7 @@ const BusinessDashboard = () => {
                               }
                             />
                           </td>
+
                           <td>
                             <input
                               type="text"
@@ -254,6 +271,7 @@ const BusinessDashboard = () => {
                     </label>
 
                     <textarea
+                      placeholder="General remarks (optional)"
                       value={q.generalRemarks || ""}
                       onChange={(e) =>
                         handleGeneralChange(
@@ -273,7 +291,7 @@ const BusinessDashboard = () => {
                         className="delete-btn"
                         onClick={() => withdrawInvitation(inv._id)}
                       >
-                        Withdraw
+                        Withdraw Invitation
                       </button>
                     </div>
                   </>
