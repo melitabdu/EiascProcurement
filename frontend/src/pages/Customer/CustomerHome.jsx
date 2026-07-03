@@ -1,7 +1,8 @@
 // src/pages/Customer/CustomerHome.jsx
+
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import api from "../../services/api"; // Adjust path if necessary
 import BusinessCategories from "../Businesses/BusinessCatagories";
 import AdvertisingSection from "../../components/AdvertisingSection";
 import "./CustomerHome.css";
@@ -12,14 +13,17 @@ const CustomerHome = () => {
   useEffect(() => {
     const fetchBusinesses = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/businesses");
-        const businesses = res.data;
+        const res = await api.get("/businesses");
 
-        // Randomized featured businesses
-        const shuffled = [...businesses].sort(() => 0.5 - Math.random());
-        setFeaturedBusinesses(shuffled.slice(0, 6)); // Show top 6
+        const businesses = Array.isArray(res.data) ? res.data : [];
+
+        // Randomize featured businesses
+        const shuffled = [...businesses].sort(() => Math.random() - 0.5);
+
+        setFeaturedBusinesses(shuffled.slice(0, 6));
       } catch (err) {
         console.error("Error loading businesses:", err);
+        setFeaturedBusinesses([]);
       }
     };
 
@@ -32,10 +36,12 @@ const CustomerHome = () => {
       <section className="hero">
         <div className="hero-overlay">
           <h1>Welcome to EIASC Procurement Portal</h1>
+
           <p>
-            Discover verified suppliers, explore tenders, and connect with businesses
-            that power procurement excellence.
+            Discover verified suppliers, explore tenders, and connect with
+            businesses that power procurement excellence.
           </p>
+
           <Link to="/businesses" className="hero-btn">
             Explore Businesses
           </Link>
@@ -45,12 +51,15 @@ const CustomerHome = () => {
       {/* ===== Categories Section ===== */}
       <BusinessCategories />
 
-      {/* ===== Featured Businesses Section ===== */}
+      {/* ===== Featured Businesses ===== */}
       <section className="featured-businesses">
         <h2>🌟 Featured Businesses</h2>
+
         <p className="section-desc">
-          Promoted suppliers and service providers currently advertising on our platform.
+          Promoted suppliers and service providers currently advertising on our
+          platform.
         </p>
+
         <div className="business-grid">
           {featuredBusinesses.length > 0 ? (
             featuredBusinesses.map((b) => (
@@ -60,8 +69,11 @@ const CustomerHome = () => {
                   alt={b.name}
                   className="business-logo"
                 />
+
                 <h3>{b.name}</h3>
+
                 <p>{b.category}</p>
+
                 <p>{b.address || "No address provided"}</p>
               </div>
             ))
@@ -71,7 +83,7 @@ const CustomerHome = () => {
         </div>
       </section>
 
-      {/* ===== Advertising Videos Section ===== */}
+      {/* ===== Advertising Videos ===== */}
       <AdvertisingSection />
     </div>
   );
