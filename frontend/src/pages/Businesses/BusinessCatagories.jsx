@@ -180,17 +180,7 @@ const BusinessCategories = () => {
 
 
 
-                <p className="business-desc">
-
-                  {
-                    biz.description
-                      ? biz.description.length > 80
-                        ? `${biz.description.substring(0,80)}...`
-                        : biz.description
-                      : ""
-                  }
-
-                </p>
+               
 
 
 
