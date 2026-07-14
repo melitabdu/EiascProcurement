@@ -118,16 +118,24 @@ const BusinessCategories = () => {
                     "No description available."}
                 </p>
 
-                {biz.website && (
-                  <a
-                    href={biz.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="business-link"
-                  >
-                    Visit Website →
-                  </a>
-                )}
+                {biz.website ? (
+  <a
+    href={
+      biz.website.startsWith("http")
+        ? biz.website
+        : `https://${biz.website}`
+    }
+    target="_blank"
+    rel="noopener noreferrer"
+    className="business-link"
+  >
+    🌐 Visit Website →
+  </a>
+) : (
+  <p className="business-phone">
+    📞 {biz.phone || "Phone not available"}
+  </p>
+)}
               </div>
             ))}
           </div>
