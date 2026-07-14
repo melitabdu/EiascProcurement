@@ -54,6 +54,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://eiasc-procurement-esmp.vercel.app",
   "https://eiascbusinsessprocurement-sigma.vercel.app",
+  "https://eiasc-procurement-ui.vercel.app"
 ];
 
 app.use(
