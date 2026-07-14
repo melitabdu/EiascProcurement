@@ -1,35 +1,12 @@
 // src/pages/Customer/CustomerHome.jsx
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import api from "../../services/api"; // Adjust path if necessary
 import BusinessCategories from "../Businesses/BusinessCatagories";
 import AdvertisingSection from "../../components/AdvertisingSection";
 import "./CustomerHome.css";
 
 const CustomerHome = () => {
-  const [featuredBusinesses, setFeaturedBusinesses] = useState([]);
-
-  useEffect(() => {
-    const fetchBusinesses = async () => {
-      try {
-        const res = await api.get("/businesses");
-
-        const businesses = Array.isArray(res.data) ? res.data : [];
-
-        // Randomize featured businesses
-        const shuffled = [...businesses].sort(() => Math.random() - 0.5);
-
-        setFeaturedBusinesses(shuffled.slice(0, 6));
-      } catch (err) {
-        console.error("Error loading businesses:", err);
-        setFeaturedBusinesses([]);
-      }
-    };
-
-    fetchBusinesses();
-  }, []);
-
   return (
     <div className="customer-home">
       {/* ===== Hero Section ===== */}
@@ -48,40 +25,8 @@ const CustomerHome = () => {
         </div>
       </section>
 
-      {/* ===== Categories Section ===== */}
+      {/* ===== Business Categories & Featured Businesses ===== */}
       <BusinessCategories />
-
-      {/* ===== Featured Businesses ===== */}
-      <section className="featured-businesses">
-        <h2>🌟 Featured Businesses</h2>
-
-        <p className="section-desc">
-          Promoted suppliers and service providers currently advertising on our
-          platform.
-        </p>
-
-        <div className="business-grid">
-          {featuredBusinesses.length > 0 ? (
-            featuredBusinesses.map((b) => (
-              <div key={b._id} className="business-card">
-                <img
-                  src={b.logo || "/placeholder.png"}
-                  alt={b.name}
-                  className="business-logo"
-                />
-
-                <h3>{b.name}</h3>
-
-                <p>{b.category}</p>
-
-                <p>{b.address || "No address provided"}</p>
-              </div>
-            ))
-          ) : (
-            <p>No featured businesses available.</p>
-          )}
-        </div>
-      </section>
 
       {/* ===== Advertising Videos ===== */}
       <AdvertisingSection />

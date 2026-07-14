@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import api from "../services/api"; // Adjust path if necessary
+import api from "../../services/api"; // Adjust path if necessary
 import "./BusinessCatagories.css";
 
 const FIXED_CATEGORIES = [

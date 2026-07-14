@@ -5,9 +5,8 @@ import User from "../models/userModel.js";
 import cloudinary from "../config/cloudinary.js";
 
 /* ===============================
-   CREATE BUSINESS (FIXED)
+   CREATE BUSINESS
 =============================== */
-
 export const createBusiness = async (req, res) => {
   try {
     console.log("========== CREATE BUSINESS START ==========");
@@ -15,6 +14,7 @@ export const createBusiness = async (req, res) => {
     const {
       name,
       categories,
+      description, // ✅ Added
       email,
       password,
       contactPersonName,
@@ -60,6 +60,7 @@ export const createBusiness = async (req, res) => {
     const business = await Business.create({
       name,
       categories: Array.isArray(categories) ? categories : [categories],
+      description, // ✅ Saved
       email,
       phone,
       address,
@@ -70,11 +71,6 @@ export const createBusiness = async (req, res) => {
         phone: contactPersonPhone,
       },
     });
-
-    /* =========================
-       HASH PASSWORD (FIX HERE)
-    ========================= */
-   
 
     /* =========================
        CREATE LOGIN USER
@@ -120,6 +116,7 @@ export const listBusinesses = asyncHandler(async (req, res) => {
         { email: { $regex: search, $options: "i" } },
         { phone: { $regex: search, $options: "i" } },
         { categories: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } }, // ✅ Search description too
         { "contactPerson.name": { $regex: search, $options: "i" } },
       ],
     };
