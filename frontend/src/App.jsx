@@ -1,41 +1,80 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 import Navbar from "./components/Navbar";
 import CustomerHome from "./pages/Customer/CustomerHome";
-import BusinessCategories from "./pages/Businesses/BusinessCatagories"; // ✅ corrected name
-import BusinessByCategory from "./pages/Businesses/BusinessByCatagories"; // ✅ corrected name
-import LoginModal from "./components/LoginModal";
+import BusinessCategories from "./pages/Businesses/BusinessCatagories";
+import BusinessByCategory from "./pages/Businesses/BusinessByCatagories";
 import BusinessDetails from "./pages/Customer/BusinessDetails";
+import LoginModal from "./components/LoginModal";
 
 import "./App.css";
 
+
 const App = () => {
+
   const [showLogin, setShowLogin] = useState(false);
 
-  const openLogin = () => setShowLogin(true);
-  const closeLogin = () => setShowLogin(false);
 
   return (
     <div className="App">
-      <Router>
-        <Navbar openLogin={openLogin} />
-        {showLogin && <LoginModal onClose={closeLogin} />}
-        <main>
-          <Routes>
-            {/* 🏠 Home page */}
-            <Route path="/" element={<CustomerHome />} />
 
-            {/* 🏢 Business sections */}
-            <Route path="/businesses" element={<BusinessCategories />} />
-            <Route path="/businesses/:category" element={<BusinessByCategory />} />
-          <Route
-  path="/business/:id"
-  element={<BusinessDetails />}
-/></Routes>
+      <Router>
+
+        <Navbar 
+          openLogin={() => setShowLogin(true)}
+        />
+
+
+        {showLogin && (
+          <LoginModal
+            onClose={() => setShowLogin(false)}
+          />
+        )}
+
+
+        <main>
+
+          <Routes>
+
+            {/* Home */}
+            <Route
+              path="/"
+              element={<CustomerHome />}
+            />
+
+
+            {/* All businesses */}
+            <Route
+              path="/businesses"
+              element={<BusinessCategories />}
+            />
+
+
+            {/* Businesses by category */}
+            <Route
+              path="/businesses/:category"
+              element={<BusinessByCategory />}
+            />
+
+
+            {/* Single business details */}
+            <Route
+              path="/business/:id"
+              element={<BusinessDetails />}
+            />
+
+
+          </Routes>
+
         </main>
+
+
       </Router>
+
     </div>
   );
 };
+
 
 export default App;

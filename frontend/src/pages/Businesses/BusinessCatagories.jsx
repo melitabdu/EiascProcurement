@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import "./BusinessCatagories.css";
+import { Link } from "react-router-dom";
 
 const FIXED_CATEGORIES = [
   "Construction",
@@ -193,12 +194,12 @@ const BusinessCategories = () => {
 
 
 
-                <a
-                  href={`/business/${biz._id}`}
-                  className="business-link"
-                >
-                  View Details →
-                </a>
+                <Link
+  to={`/business/${biz._id}`}
+  className="business-link"
+>
+  View Details →
+</Link>
 
 
               </div>
