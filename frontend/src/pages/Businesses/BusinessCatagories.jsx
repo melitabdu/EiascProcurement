@@ -32,12 +32,15 @@ const BusinessCategories = () => {
 
       let data = Array.isArray(res.data) ? res.data : [];
 
-      // Show 8 random businesses when no category is selected
+      // Show random featured businesses
       if (!category) {
-        data = [...data].sort(() => Math.random() - 0.5).slice(0, 8);
+        data = [...data]
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 8);
       }
 
       setBusinesses(data);
+
     } catch (error) {
       console.error("Error loading businesses:", error);
       setBusinesses([]);
@@ -46,9 +49,11 @@ const BusinessCategories = () => {
     }
   };
 
+
   useEffect(() => {
     fetchBusinesses();
   }, []);
+
 
   const handleCategoryClick = (category) => {
     if (category === activeCategory) {
@@ -60,18 +65,26 @@ const BusinessCategories = () => {
     }
   };
 
+
   return (
     <div className="business-page">
+
       {/* Categories */}
       <section className="categories-section">
-        <h2>Business Categories</h2>
+
+        <h2>
+          Business Categories
+        </h2>
 
         <p className="section-desc">
-          Browse suppliers and service providers by category.
+          Browse verified suppliers and service providers by category.
         </p>
 
+
         <div className="category-grid">
+
           {FIXED_CATEGORIES.map((cat) => (
+
             <button
               key={cat}
               className={`category-card ${
@@ -79,77 +92,131 @@ const BusinessCategories = () => {
               }`}
               onClick={() => handleCategoryClick(cat)}
             >
-              <div className="category-icon">🏷️</div>
-              <h3>{cat}</h3>
+
+              <div className="category-icon">
+                🏷️
+              </div>
+
+              <h3>
+                {cat}
+              </h3>
+
             </button>
+
           ))}
+
         </div>
+
       </section>
 
+
+
       {/* Businesses */}
+
       <section className="business-list-section">
+
         <h2>
-          {activeCategory
-            ? `${activeCategory} Businesses`
-            : "Featured Businesses"}
+          {
+            activeCategory
+              ? `${activeCategory} Businesses`
+              : "Featured Businesses"
+          }
         </h2>
 
+
         {loading ? (
-          <p>Loading businesses...</p>
+
+          <p>
+            Loading businesses...
+          </p>
+
+
         ) : businesses.length === 0 ? (
-          <p>No businesses found.</p>
+
+          <p>
+            No businesses found.
+          </p>
+
+
         ) : (
+
           <div className="business-grid">
+
+
             {businesses.map((biz) => (
-              <div key={biz._id} className="business-card">
+
+              <div
+                key={biz._id}
+                className="business-card"
+              >
+
+
                 <img
-                  src={biz.logo || "https://via.placeholder.com/100"}
+                  src={
+                    biz.logo ||
+                    "https://via.placeholder.com/100"
+                  }
                   alt={biz.name}
                   className="business-logo"
                 />
 
-                <h3>{biz.name}</h3>
+
+                <h3>
+                  {biz.name}
+                </h3>
+
+
 
                 <p className="business-cat">
-                  {Array.isArray(biz.categories)
-                    ? biz.categories.join(", ")
-                    : biz.categories || "Uncategorized"}
+
+                  {
+                    Array.isArray(biz.categories)
+                      ? biz.categories.join(", ")
+                      : biz.categories || "Uncategorized"
+                  }
+
                 </p>
+
+
 
                 <p className="business-desc">
-                  {biz.description
-                    ? biz.description.length > 80
-                      ? `${biz.description.substring(0, 80)}...`
-                      : biz.description
-                    : "No description available."}
+
+                  {
+                    biz.description
+                      ? biz.description.length > 80
+                        ? `${biz.description.substring(0,80)}...`
+                        : biz.description
+                      : ""
+                  }
+
                 </p>
 
-                {typeof biz.website === "string" &&
-                biz.website.trim() !== "" ? (
-                  <a
-                    href={
-                      biz.website.startsWith("http")
-                        ? biz.website
-                        : `https://${biz.website}`
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="business-link"
-                  >
-                    🌐 Visit Website →
-                  </a>
-                ) : (
-                  <p className="business-phone">
-                    📞 {biz.phone || "Phone not available"}
-                  </p>
-                )}
+
+
+                <a
+                  href={`/business/${biz._id}`}
+                  className="business-link"
+                >
+                  View Details →
+                </a>
+
+
               </div>
+
             ))}
+
+
           </div>
+
         )}
+
+
       </section>
+
+
     </div>
   );
 };
+
 
 export default BusinessCategories;

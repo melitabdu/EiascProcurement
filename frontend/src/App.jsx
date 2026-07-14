@@ -5,6 +5,7 @@ import CustomerHome from "./pages/Customer/CustomerHome";
 import BusinessCategories from "./pages/Businesses/BusinessCatagories"; // ✅ corrected name
 import BusinessByCategory from "./pages/Businesses/BusinessByCatagories"; // ✅ corrected name
 import LoginModal from "./components/LoginModal";
+import BusinessDetails from "./pages/Customer/BusinessDetails";
 
 import "./App.css";
 
@@ -27,7 +28,10 @@ const App = () => {
             {/* 🏢 Business sections */}
             <Route path="/businesses" element={<BusinessCategories />} />
             <Route path="/businesses/:category" element={<BusinessByCategory />} />
-          </Routes>
+          <Route
+  path="/business/:id"
+  element={<BusinessDetails />}
+/></Routes>
         </main>
       </Router>
     </div>
