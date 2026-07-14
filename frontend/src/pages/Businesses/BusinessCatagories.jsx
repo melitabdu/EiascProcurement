@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import api from "../../services/api"; // Adjust path if necessary
+import api from "../../services/api";
 import "./BusinessCatagories.css";
 
 const FIXED_CATEGORIES = [
@@ -20,7 +20,6 @@ const BusinessCategories = () => {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch businesses
   const fetchBusinesses = async (category = null) => {
     setLoading(true);
 
@@ -31,10 +30,10 @@ const BusinessCategories = () => {
 
       const res = await api.get(endpoint);
 
-      let data = res.data;
+      let data = Array.isArray(res.data) ? res.data : [];
 
       // Show 8 random businesses when no category is selected
-      if (!category && Array.isArray(data)) {
+      if (!category) {
         data = [...data].sort(() => Math.random() - 0.5).slice(0, 8);
       }
 
@@ -111,31 +110,39 @@ const BusinessCategories = () => {
 
                 <h3>{biz.name}</h3>
 
-                <p className="business-cat">{biz.category}</p>
-
-                <p className="business-desc">
-                  {biz.description?.slice(0, 80) ||
-                    "No description available."}
+                <p className="business-cat">
+                  {Array.isArray(biz.categories)
+                    ? biz.categories.join(", ")
+                    : biz.categories || "Uncategorized"}
                 </p>
 
-                {biz.website ? (
-  <a
-    href={
-      biz.website.startsWith("http")
-        ? biz.website
-        : `https://${biz.website}`
-    }
-    target="_blank"
-    rel="noopener noreferrer"
-    className="business-link"
-  >
-    🌐 Visit Website →
-  </a>
-) : (
-  <p className="business-phone">
-    📞 {biz.phone || "Phone not available"}
-  </p>
-)}
+                <p className="business-desc">
+                  {biz.description
+                    ? biz.description.length > 80
+                      ? `${biz.description.substring(0, 80)}...`
+                      : biz.description
+                    : "No description available."}
+                </p>
+
+                {typeof biz.website === "string" &&
+                biz.website.trim() !== "" ? (
+                  <a
+                    href={
+                      biz.website.startsWith("http")
+                        ? biz.website
+                        : `https://${biz.website}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="business-link"
+                  >
+                    🌐 Visit Website →
+                  </a>
+                ) : (
+                  <p className="business-phone">
+                    📞 {biz.phone || "Phone not available"}
+                  </p>
+                )}
               </div>
             ))}
           </div>
